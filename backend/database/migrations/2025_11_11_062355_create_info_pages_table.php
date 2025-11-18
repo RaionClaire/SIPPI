@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('info_pages', function (Blueprint $table) {
             $table->id();
+            $table->string('slug')->unique();
+            $table->string('title');
+            $table->text('content');
+            $table->foreignId('author_id')->constrained('users');
             $table->timestamps();
         });
     }

@@ -13,6 +13,14 @@ return new class extends Migration
     {
         Schema::create('announcements', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('author_id')->constrained('users');
+            $table->foreignId('category_id')->constrained('categories');
+            $table->string('title');
+            $table->text('content');
+            $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
+            $table->dateTime('published_at')->nullable();
+            $table->dateTime('archived_at')->nullable();
+            $table->foreignId('archived_by')->nullable()->constrained('users');
             $table->timestamps();
         });
     }

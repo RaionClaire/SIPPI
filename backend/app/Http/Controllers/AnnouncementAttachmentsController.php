@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Registration;
+use App\Models\announcement_attachments;
 use Illuminate\Http\Request;
 
-class RegistrationController extends Controller
+class AnnouncementAttachmentsController extends Controller
 {
     /**
      * Display a listing of the resource.
@@ -34,7 +34,7 @@ class RegistrationController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Registration $registration)
+    public function show(announcement_attachments $announcement_attachments)
     {
         //
     }
@@ -42,7 +42,7 @@ class RegistrationController extends Controller
     /**
      * Show the form for editing the specified resource.
      */
-    public function edit(Registration $registration)
+    public function edit(announcement_attachments $announcement_attachments)
     {
         //
     }
@@ -50,7 +50,7 @@ class RegistrationController extends Controller
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Registration $registration)
+    public function update(Request $request, announcement_attachments $announcement_attachments)
     {
         //
     }
@@ -58,7 +58,7 @@ class RegistrationController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Registration $registration)
+    public function destroy(announcement_attachments $announcement_attachments)
     {
         //
     }

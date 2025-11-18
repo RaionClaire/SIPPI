@@ -13,6 +13,10 @@ return new class extends Migration
     {
         Schema::create('registration_files', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('user_id')->constrained('users')->onDelete('cascade');
+            $table->enum('type', ['proposal', 'hasil', 'kompre', 'kp']);
+            $table->string('file_path');
+            $table->string('filename');
             $table->timestamps();
         });
     }
