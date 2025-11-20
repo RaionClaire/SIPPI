@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Announcement;
 use App\Models\announcement_attachments;
 use Illuminate\Http\Request;
 
@@ -12,15 +13,11 @@ class AnnouncementAttachmentsController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $announcements = announcement_attachments::orderBy('created_at', 'desc')->get();
+        return response()->json([
+            'message' => "Daftar pengumuman",
+            'data' => $announcements
+        ], 200);
     }
 
     /**
@@ -28,7 +25,12 @@ class AnnouncementAttachmentsController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'announcement_id' => 'required|exists:announcements,id',
+            'file_path' => 'required|string|max:255'
+        ]);
+
+        $attachment = announcement_attachments::create($validated);
     }
 
     /**
