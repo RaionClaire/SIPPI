@@ -12,15 +12,11 @@ class CommentController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $comment = Comment::orderBy('created_at', 'desc')->get();
+        return response()->json([
+            'message' => "Daftar komentar",
+            'data' => $comment
+        ], 200);
     }
 
     /**
@@ -28,38 +24,83 @@ class CommentController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'post_id' => 'required|integer|exists:posts,id',
+            'user_id' => 'required|integer|exists:users,id',
+            'content' => 'required|string',
+        ]);
+
+        $comment = Comment::create($validated);
+
+        return response()->json([
+            'message' => 'Komentar berhasil dibuat',
+            'data' => $comment
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Comment $comment)
+    public function show($id)
     {
-        //
-    }
+        $comment = Comment::find($id);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Comment $comment)
-    {
-        //
+        if (!$comment) {
+            return response()->json([
+                'message' => 'Komentar tidak ditemukan',
+            ], 404);
+        }
+    
+        return response()->json([
+            'message' => 'Detail komentar',
+            'data' => $comment
+        ], 200);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Comment $comment)
+    public function update(Request $request, $id)
     {
-        //
+        $comment = Comment::find($id);
+
+        if (!$comment) {
+            return response()->json([
+                'message' => 'Komentar tidak ditemukan',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'post_id' => 'required|integer|exists:posts,id',
+            'user_id' => 'required|integer|exists:users,id',
+            'content' => 'required|string',
+        ]);
+
+        $comment->update($validated);
+
+        return response()->json([
+            'message' => 'Komentar berhasil diperbarui',
+            'data' => $comment
+        ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Comment $comment)
+    public function destroy($id)
     {
-        //
+        $comment = Comment::find($id);
+
+        if (!$comment) {
+            return response()->json([
+                'message' => 'Komentar tidak ditemukan',
+            ], 404);
+        }
+
+        $comment->delete();
+
+        return response()->json([
+            'message' => 'Komentar berhasil dihapus',
+        ], 200);
     }
 }

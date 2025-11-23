@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->foreignId('announcement_id')->constrained('announcements')->onDelete('cascade');
             $table->string('file_path');
+            $table->string('original_filename')->nullable();
             $table->timestamps();
         });
     }

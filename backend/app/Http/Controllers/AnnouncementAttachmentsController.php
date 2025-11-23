@@ -5,63 +5,96 @@ namespace App\Http\Controllers;
 use App\Models\Announcement;
 use App\Models\announcement_attachments;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AnnouncementAttachmentsController extends Controller
 {
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Announcement $pengumuman)
     {
-        $announcements = announcement_attachments::orderBy('created_at', 'desc')->get();
+        $attachments = $pengumuman->attachments()->latest()->get()->map(function ($attachment) {
+            $attachment->url = Storage::url($attachment->file_path);
+            return $attachment;
+        });
+
         return response()->json([
-            'message' => "Daftar pengumuman",
-            'data' => $announcements
+            'message' => "Daftar lampiran",
+            'announcement_id' => $pengumuman->id,
+            'data' => $attachments
         ], 200);
     }
 
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, Announcement $pengumuman)
     {
         $validated = $request->validate([
-            'announcement_id' => 'required|exists:announcements,id',
-            'file_path' => 'required|string|max:255'
+            'attachment' => 'required|file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:5120',
         ]);
 
-        $attachment = announcement_attachments::create($validated);
+        $file = $request->file('attachment');
+        $originalName = $file->getClientOriginalName();
+        $storedPath = $file->store('announcement_attachments', 'public');
+
+        $attachment = $pengumuman->attachments()->create([
+            'file_path' => $storedPath,
+            'original_filename' => $originalName,
+        ]);
+
+        return response()->json([
+            'message' => 'Lampiran berhasil diunggah',
+            'data' => $attachment,
+            'url' => Storage::url($storedPath),
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(announcement_attachments $announcement_attachments)
+    public function show(Announcement $pengumuman, announcement_attachments $lampiran)
     {
-        //
+        if ($lampiran->announcement_id !== $pengumuman->id) {
+            return response()->json([
+                'message' => 'Lampiran tidak ditemukan untuk pengumuman ini',
+            ], 404);
+        }
+
+        $lampiran->url = Storage::url($lampiran->file_path);
+
+        return response()->json([
+            'message' => 'Detail lampiran',
+            'data' => $lampiran,
+        ], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(announcement_attachments $announcement_attachments)
-    {
-        //
-    }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, announcement_attachments $announcement_attachments)
-    {
-        //
-    }
+
+
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(announcement_attachments $announcement_attachments)
+    public function destroy(Announcement $pengumuman, announcement_attachments $lampiran)
     {
-        //
+        if ($lampiran->announcement_id !== $pengumuman->id) {
+            return response()->json([
+                'message' => 'Lampiran tidak ditemukan untuk pengumuman ini',
+            ], 404);
+        }
+
+        // Delete file from storage
+        if (Storage::disk('public')->exists($lampiran->file_path)) {
+            Storage::disk('public')->delete($lampiran->file_path);
+        }
+
+        // Delete database record
+        $lampiran->delete();
+
+        return response()->json([
+            'message' => 'Lampiran berhasil dihapus',
+        ], 200);
     }
 }

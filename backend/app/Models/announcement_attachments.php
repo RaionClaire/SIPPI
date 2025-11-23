@@ -9,6 +9,7 @@ class announcement_attachments extends Model
     protected $fillable = [
         'announcement_id',
         'file_path',
+        'original_filename',
     ];
 
     public function announcement()

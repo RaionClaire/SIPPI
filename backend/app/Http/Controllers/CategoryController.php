@@ -12,15 +12,11 @@ class CategoryController extends Controller
      */
     public function index()
     {
-        //
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
+        $category = Category::orderBy('created_at', 'desc')->get();
+        return response()->json([
+            'message' => "Daftar kategori",
+            'data' => $category
+        ], 200);
     }
 
     /**
@@ -28,38 +24,81 @@ class CategoryController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $category = Category::create($validated);
+
+        return response()->json([
+            'message' => 'Kategori berhasil dibuat',
+            'data' => $category
+        ], 201);
     }
 
     /**
      * Display the specified resource.
      */
-    public function show(Category $category)
+    public function show($id)
     {
-        //
-    }
+        $category = Category::find($id);
 
-    /**
-     * Show the form for editing the specified resource.
-     */
-    public function edit(Category $category)
-    {
-        //
+        if (!$category) {
+            return response()->json([
+                'message' => 'Kategori tidak ditemukan',
+            ], 404);
+        }
+
+        return response()->json([
+            'message' => 'Detail kategori',
+            'data' => $category
+        ], 200);
     }
 
     /**
      * Update the specified resource in storage.
      */
-    public function update(Request $request, Category $category)
+    public function update(Request $request, $id)
     {
-        //
+        $category = Category::find($id);
+
+        if (!$category) {
+            return response()->json([
+                'message' => 'Kategori tidak ditemukan',
+            ], 404);
+        }
+
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        $category->update($validated);
+
+        return response()->json([
+            'message' => 'Kategori berhasil diperbarui',
+            'data' => $category
+        ], 200);
     }
 
     /**
      * Remove the specified resource from storage.
      */
-    public function destroy(Category $category)
+    public function destroy($id)
     {
-        //
+        $category = Category::find($id);
+
+        if (!$category) {
+            return response()->json([
+                'message' => 'Kategori tidak ditemukan',
+            ], 404);
+        }
+
+        $category->delete();
+
+        return response()->json([
+            'message' => 'Kategori berhasil dihapus',
+        ], 200);
     }
 }
