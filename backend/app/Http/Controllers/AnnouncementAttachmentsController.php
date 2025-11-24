@@ -85,12 +85,10 @@ class AnnouncementAttachmentsController extends Controller
             ], 404);
         }
 
-        // Delete file from storage
         if (Storage::disk('public')->exists($lampiran->file_path)) {
             Storage::disk('public')->delete($lampiran->file_path);
         }
 
-        // Delete database record
         $lampiran->delete();
 
         return response()->json([

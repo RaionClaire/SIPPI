@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Announcement;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class AnnouncementController extends Controller
 {
@@ -25,19 +26,46 @@ class AnnouncementController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = request()->validate([
+        $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
+            'category_id' => 'required|exists:categories,id',
+            'attachments' => 'nullable|array',
+            'attachments.*' => 'file|mimes:pdf,doc,docx,xls,xlsx,jpg,jpeg,png|max:5120',
         ]);
 
         $announcement = Announcement::create([
             'title' => $validated['title'],
             'content' => $validated['content'],
+            'category_id' => $validated['category_id'],
+            'author_id' => $request->user()->id,
+            'status' => 'draft',
         ]);
+
+        $attachments = [];
+        if ($request->hasFile('attachments')) {
+            foreach ($request->file('attachments') as $file) {
+                $originalName = $file->getClientOriginalName();
+                $storedPath = $file->store('announcement_attachments', 'public');
+
+                $attachment = $announcement->attachments()->create([
+                    'file_path' => $storedPath,
+                    'original_filename' => $originalName,
+                ]);
+
+                $attachments[] = [
+                    'id' => $attachment->id,
+                    'file_path' => $storedPath,
+                    'original_filename' => $originalName,
+                    'url' => Storage::url($storedPath),
+                ];
+            }
+        }
 
         return response()->json([
             'message' => 'Pengumuman berhasil dibuat',
-            'data' => $announcement
+            'data' => $announcement,
+            'attachments' => $attachments,
         ], 201);
     }
 

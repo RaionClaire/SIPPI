@@ -39,11 +39,12 @@ Route::prefix('users')->middleware('auth:sanctum')->group(function () {
     Route::delete('{id}', [App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy')->whereNumber('id');
 });
 
-Route::prefix('registration-files')->middleware('auth:sanctum')->group(function () {
-    Route::get('/', [App\Http\Controllers\RegistrationFileController::class, 'index'])->name('registration_files.index');
-    Route::post('/', [App\Http\Controllers\RegistrationFileController::class, 'store'])->name('registration_files.store');
-    Route::put('{id}', [App\Http\Controllers\RegistrationFileController::class, 'update'])->name('registration_files.update')->whereNumber('id');
-    Route::delete('{id}', [App\Http\Controllers\RegistrationFileController::class, 'destroy'])->name('registration_files.destroy')->whereNumber('id');
+Route::prefix('berkas')->middleware('auth:sanctum')->group(function () {
+    Route::get('/', [App\Http\Controllers\RegistrationFileController::class, 'index'])->name('berkas.index');
+    Route::post('/', [App\Http\Controllers\RegistrationFileController::class, 'store'])->name('berkas.store');
+    Route::get('{id}', [App\Http\Controllers\RegistrationFileController::class, 'show'])->name('berkas.show')->whereNumber('id');
+    Route::put('{id}', [App\Http\Controllers\RegistrationFileController::class, 'update'])->name('berkas.update')->whereNumber('id');
+    Route::delete('{id}', [App\Http\Controllers\RegistrationFileController::class, 'destroy'])->name('berkas.destroy')->whereNumber('id');
 });
 
 Route::prefix('notifications')->middleware('auth:sanctum')->group(function () {

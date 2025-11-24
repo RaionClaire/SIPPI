@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\RegistrationFile;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class RegistrationFileController extends Controller
 {
@@ -12,10 +13,17 @@ class RegistrationFileController extends Controller
      */
     public function index()
     {
-        $registrationFile = RegistrationFile::orderBy('created_at', 'desc')->get();
+        $registrationFiles = RegistrationFile::with('user:id,name,email')
+            ->orderBy('created_at', 'desc')
+            ->get()
+            ->map(function ($file) {
+                $file->url = Storage::url($file->file_path);
+                return $file;
+            });
+
         return response()->json([
             'message' => "Daftar berkas pendaftaran",
-            'data' => $registrationFile
+            'data' => $registrationFiles
         ], 200);
     }
 
@@ -26,16 +34,25 @@ class RegistrationFileController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'user_id' => 'required|integer|exists:users,id',
-            'file_path' => 'required|string',
-            'file_type' => 'required|string',
+            'type' => 'required|in:proposal,hasil,kompre,kp',
+            'file' => 'required|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
-        $registrationFile = RegistrationFile::create($validated);
+        $file = $request->file('file');
+        $originalName = $file->getClientOriginalName();
+        $storedPath = $file->store('registration_files', 'public');
+
+        $registrationFile = RegistrationFile::create([
+            'user_id' => $request->user()->id,
+            'type' => $validated['type'],
+            'file_path' => $storedPath,
+            'filename' => $originalName,
+        ]);
 
         return response()->json([
-            'message' => 'Berkas pendaftaran berhasil dibuat',
-            'data' => $registrationFile
+            'message' => 'Berkas pendaftaran berhasil diunggah',
+            'data' => $registrationFile,
+            'url' => Storage::url($storedPath),
         ], 201);
     }
 
@@ -44,13 +61,15 @@ class RegistrationFileController extends Controller
      */
     public function show($id)
     {
-        $registrationFile = RegistrationFile::find($id);
+        $registrationFile = RegistrationFile::with('user:id,name,email')->find($id);
 
         if (!$registrationFile) {
             return response()->json([
                 'message' => 'Berkas pendaftaran tidak ditemukan',
             ], 404);
         }
+
+        $registrationFile->url = Storage::url($registrationFile->file_path);
 
         return response()->json([
             'message' => 'Detail berkas pendaftaran',
@@ -72,17 +91,43 @@ class RegistrationFileController extends Controller
             ], 404);
         }
 
+        // Check authorization
+        if ($registrationFile->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Anda tidak memiliki akses untuk mengubah berkas ini',
+            ], 403);
+        }
+
         $validated = $request->validate([
-            'user_id' => 'required|integer|exists:users,id',
-            'file_path' => 'required|string',
-            'file_type' => 'required|string',
+            'type' => 'sometimes|in:proposal,hasil,kompre,kp',
+            'file' => 'sometimes|file|mimes:pdf,doc,docx|max:10240',
         ]);
 
-        $registrationFile->update($validated);
+        // If new file uploaded, delete old file and upload new one
+        if ($request->hasFile('file')) {
+            // Delete old file
+            if (Storage::disk('public')->exists($registrationFile->file_path)) {
+                Storage::disk('public')->delete($registrationFile->file_path);
+            }
+
+            $file = $request->file('file');
+            $originalName = $file->getClientOriginalName();
+            $storedPath = $file->store('registration_files', 'public');
+
+            $registrationFile->file_path = $storedPath;
+            $registrationFile->filename = $originalName;
+        }
+
+        if (isset($validated['type'])) {
+            $registrationFile->type = $validated['type'];
+        }
+
+        $registrationFile->save();
 
         return response()->json([
             'message' => 'Berkas pendaftaran berhasil diperbarui',
-            'data' => $registrationFile
+            'data' => $registrationFile,
+            'url' => Storage::url($registrationFile->file_path),
         ], 200);
     }
 
@@ -97,6 +142,11 @@ class RegistrationFileController extends Controller
             return response()->json([
                 'message' => 'Berkas pendaftaran tidak ditemukan',
             ], 404);
+        }
+
+        // Delete physical file from storage
+        if (Storage::disk('public')->exists($registrationFile->file_path)) {
+            Storage::disk('public')->delete($registrationFile->file_path);
         }
 
         $registrationFile->delete();
