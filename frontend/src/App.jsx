@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import Dashboard from './pages/Dashboard';
@@ -9,17 +9,15 @@ import Notification from './pages/Notification';
 import Archive from './pages/Archive';
 import Profile from './pages/Profile';
 import MainLayout from './layouts/MainLayout';
+import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 
 function App() {
-  // Simulasi auth - nanti ganti dengan real auth
-  const isAuthenticated = localStorage.getItem('isAuthenticated') === 'true';
-
   return (
     <Routes>
-      <Route path="/login" element={!isAuthenticated ? <Login /> : <Navigate to="/" />} />
-      <Route path="/register" element={!isAuthenticated ? <Register /> : <Navigate to="/" />} />
+      <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+      <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
       
-      <Route element={isAuthenticated ? <MainLayout /> : <Navigate to="/login" />}>
+      <Route element={<ProtectedRoute><MainLayout /></ProtectedRoute>}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/pengumuman/:id" element={<AnnouncementDetail />} />
         <Route path="/berkas-administrasi" element={<BerkasAdministrasi />} />
