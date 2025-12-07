@@ -2,49 +2,47 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { HiOutlineDocumentText, HiOutlineClock, HiOutlineCheckCircle, HiOutlineFilter, HiOutlineSearch, HiOutlineExclamation } from 'react-icons/hi';
 import { FaCalendarAlt, FaUser } from 'react-icons/fa';
+import { dashboardAPI, announcementAPI } from '../../services/api';
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({
-    totalPengumuman: 24,
-    berkasPending: 6,
-    berkasDisetujui: 40
+    totalPengumuman: 0,
+    berkasPending: 0,
+    berkasDisetujui: 0
   });
+  const [loading, setLoading] = useState(true);
 
   const [filter, setFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [importantAnnouncements, setImportantAnnouncements] = useState([]);
+  const [allAnnouncements, setAllAnnouncements] = useState([]);
 
-  const importantAnnouncements = [
-    {
-      id: 1,
-      title: 'Pengumuman Jadwal Ujian Akhir Semester Ganjil 2024/2025',
-      content: 'Kepada seluruh mahasiswa Prodi Informatika, Dengan ini diumumkan bahwa jadwal ujian akhir semester genap tahun akademik 2024/2025 akan...',
-      category: 'Akademik',
-      isImportant: true,
-      date: '20 November 2025',
-      author: 'Admin Prodi'
-    }
-  ];
+  useEffect(() => {
+    fetchDashboardData();
+  }, []);
 
-  const allAnnouncements = [
-    {
-      id: 2,
-      title: 'Workshop: Introduction to Machine Learning',
-      content: 'Prodi Informatika akan mengadakan workshop dasar terkait Machine Learning. Workshop ini terbuka untuk semua mahasiswa dan akan diadakan pada tanggal 6 Desember 2025 di ruang...',
-      category: 'Kegiatan',
-      isImportant: false,
-      date: '17 November 2025',
-      author: 'Admin Prodi'
-    },
-    {
-      id: 3,
-      title: 'Pendaftaran Beasiswa Prestasi Tahun Ini Dibuka',
-      content: 'Informasi untuk mahasiswa berprestasi, pendaftaran beasiswa prestasi untuk semester ini akan segera dibuka. Silahkan mengajukan berkas persyaratan ke admin prodi sebelum tanggal...',
-      category: 'Beasiswa',
-      isImportant: false,
-      date: '10 November 2025',
-      author: 'Admin Prodi'
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      
+      // Fetch stats
+      const statsResponse = await dashboardAPI.getStats();
+      setStats(statsResponse.data.data);
+
+      // Fetch announcements
+      const announcementsResponse = await announcementAPI.getAll();
+      const announcements = announcementsResponse.data.data || [];
+      
+      // Separate important and regular announcements
+      setImportantAnnouncements(announcements.filter(a => a.is_important));
+      setAllAnnouncements(announcements.filter(a => !a.is_important));
+      
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error);
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
   const getCategoryColor = (category) => {
     const colors = {

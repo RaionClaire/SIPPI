@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { userAPI } from '../../services/api';
 
 export default function TambahPengguna() {
   const navigate = useNavigate();
@@ -18,23 +19,26 @@ export default function TambahPengguna() {
   // Load user data if in edit mode
   useEffect(() => {
     if (isEditMode) {
-      // TODO: Fetch user data from API
-      // Mock data for now
-      const mockUser = {
-        id: id,
-        name: 'Budi Santoso',
-        email: 'budi.santoso@student.univ.ac.id',
-        role: 'mahasiswa'
-      };
-      setFormData({
-        name: mockUser.name,
-        email: mockUser.email,
-        password: '',
-        password_confirmation: '',
-        role: mockUser.role
-      });
+      fetchUser();
     }
   }, [id, isEditMode]);
+
+  const fetchUser = async () => {
+    try {
+      const response = await userAPI.getById(id);
+      const user = response.data.data;
+      setFormData({
+        name: user.name,
+        email: user.email,
+        password: '',
+        password_confirmation: '',
+        role: user.role
+      });
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      alert('Gagal memuat data pengguna');
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -61,15 +65,26 @@ export default function TambahPengguna() {
     setLoading(true);
 
     try {
-      // TODO: Call API to create/update user
-      console.log(isEditMode ? 'Updating user:' : 'Creating user:', formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (isEditMode) {
+        // Update existing user
+        await userAPI.update(id, formData);
+        alert('Pengguna berhasil diperbarui');
+      } else {
+        // Create new user
+        await userAPI.create(formData);
+        alert('Pengguna berhasil ditambahkan');
+      }
       
       navigate('/admin/pengguna');
     } catch (error) {
       console.error('Error saving user:', error);
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const errorMessages = Object.values(errors).flat().join('\n');
+        alert(errorMessages);
+      } else {
+        alert(error.response?.data?.message || 'Gagal menyimpan pengguna');
+      }
     } finally {
       setLoading(false);
     }

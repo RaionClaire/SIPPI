@@ -28,12 +28,14 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
             'password' => 'required|string|min:8|confirmed',
+            'role' => 'required|in:admin,mahasiswa,user',
         ]);
 
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
             'password' => bcrypt($validated['password']),
+            'role' => $validated['role'],
         ]);
 
         return response()->json([
@@ -70,7 +72,26 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
             'password' => 'nullable|string|min:8|confirmed',
+            'role' => 'sometimes|in:admin,mahasiswa,user',
         ]);
+
+        $user->name = $validated['name'];
+        $user->email = $validated['email'];
+        
+        if (isset($validated['role'])) {
+            $user->role = $validated['role'];
+        }
+        
+        if (!empty($validated['password'])) {
+            $user->password = bcrypt($validated['password']);
+        }
+        
+        $user->save();
+
+        return response()->json([
+            'message' => 'Pengguna berhasil diperbarui',
+            'data' => $user
+        ], 200);
     }
 
     /**

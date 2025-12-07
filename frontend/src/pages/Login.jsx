@@ -1,58 +1,29 @@
-import { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaUser, FaLock } from 'react-icons/fa';
 import { authAPI } from '../services/api';
 
-export default function Login() {
+const LoginPage = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: '',
     password: ''
   });
-  const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
-  const [apiError, setApiError] = useState('');
+  const [error, setError] = useState('');
 
   const handleChange = (e) => {
     setFormData({
       ...formData,
       [e.target.name]: e.target.value
     });
-    // Clear error saat user mulai mengetik
-    if (errors[e.target.name]) {
-      setErrors({
-        ...errors,
-        [e.target.name]: ''
-      });
-    }
-  };
-
-  const validate = () => {
-    const newErrors = {};
-    if (!formData.email.trim()) {
-      newErrors.email = 'Email harus diisi';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Format email tidak valid';
-    }
-    if (!formData.password) {
-      newErrors.password = 'Password harus diisi';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password minimal 6 karakter';
-    }
-    return newErrors;
+    setError('');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const newErrors = validate();
-    
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-
     setLoading(true);
-    setApiError('');
+    setError('');
 
     try {
       const response = await authAPI.login(formData);
@@ -64,128 +35,96 @@ export default function Login() {
       localStorage.setItem('isAuthenticated', 'true');
 
       // Redirect based on role
-      if (user.role === 'mahasiswa') {
-        navigate('/');
-      } else if (user.role === 'admin') {
+      if (user.role === 'admin') {
         navigate('/admin');
       } else {
         navigate('/');
       }
     } catch (error) {
       console.error('Login error:', error);
-      if (error.response?.status === 401) {
-        setApiError('Email atau password salah');
-      } else if (error.response?.data?.message) {
-        setApiError(error.response.data.message);
-      } else {
-        setApiError('Terjadi kesalahan. Silakan coba lagi.');
-      }
+      setError(error.response?.data?.message || 'Email atau password salah');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex">
-      {/* Left side - Form */}
-      <div className="w-full lg:w-1/2 flex items-center justify-center p-8 bg-gradient-to-br from-blue-50 to-blue-100">
-        <div className="w-full max-w-md">
-          {/* Header */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-8 mb-8 shadow-lg">
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">SIPPI</h1>
-            <p className="text-gray-600">Sistem Informasi Pengumuman Prodi Informatika</p>
+    <div 
+      className="relative min-h-screen w-full bg-cover bg-center bg-no-repeat font-sans flex items-center"
+      style={{ backgroundImage: "url('/login.png')" }}
+    >
+      
+      {/* --- Main Layout Container --- */}
+      <div className="container mx-auto px-4 relative z-10 flex flex-wrap justify-between items-center h-full">
+        
+        {/* --- Left Column: Login Forms --- */}
+        <div className="w-full md:w-[450px] flex flex-col gap-6 ml-0 md:ml-12">
+          
+          {/* Top Card: Title */}
+          <div className="bg-[#9ec5fe] p-6 rounded-3xl shadow-lg text-center border-b-4 border-[#8eb5ee]">
+            <h1 className="text-4xl font-extrabold text-white drop-shadow-md tracking-wider">SIPPI</h1>
+            <p className="text-white text-sm mt-1 font-medium leading-tight">
+              Sistem Informasi Pengumuman<br />Prodi Informatika
+            </p>
           </div>
 
-          {/* Form */}
-          <div className="bg-white/90 backdrop-blur-sm rounded-2xl p-8 shadow-xl">
-            <h2 className="text-3xl font-bold text-gray-900 mb-8">MASUK</h2>
+          {/* Bottom Card: Login Inputs */}
+          <div className="bg-[#9ec5fe] p-8 rounded-3xl shadow-lg border-b-4 border-[#8eb5ee]">
+            <h2 className="text-3xl font-bold text-white text-center mb-6 drop-shadow-sm">MASUK</h2>
+            
+            {error && (
+              <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md mb-4">
+                {error}
+              </div>
+            )}
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email */}
-              <div>
-                <div className="relative">
-                  <FaUser className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="email"
-                    name="email"
-                    value={formData.email}
-                    onChange={handleChange}
-                    placeholder="Masukkan Email"
-                    disabled={loading}
-                    className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
-                      errors.email ? 'border-red-500' : 'border-gray-200'
-                    } ${loading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                  />
+            <form className="space-y-4" onSubmit={handleSubmit}>
+              {/* Email Input */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                  <FaUser size={20} />
                 </div>
-                {errors.email && (
-                  <p className="mt-1 text-sm text-red-600">{errors.email}</p>
-                )}
+                <input 
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="Masukkan Email" 
+                  className="w-full py-3 pl-10 pr-4 bg-[#e2eafc] rounded-md text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner"
+                  required
+                />
               </div>
 
-              {/* Password */}
-              <div>
-                <div className="relative">
-                  <FaLock className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400" />
-                  <input
-                    type="password"
-                    name="password"
-                    value={formData.password}
-                    onChange={handleChange}
-                    placeholder="Masukkan Kata Sandi"
-                    disabled={loading}
-                    className={`w-full pl-12 pr-4 py-3 border-2 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all ${
-                      errors.password ? 'border-red-500' : 'border-gray-200'
-                    } ${loading ? 'bg-gray-100 cursor-not-allowed' : ''}`}
-                  />
+              {/* Password Input */}
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                  <FaLock size={20} />
                 </div>
-                {errors.password && (
-                  <p className="mt-1 text-sm text-red-600">{errors.password}</p>
-                )}
+                <input 
+                  type="password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Masukkan Kata Sandi" 
+                  className="w-full py-3 pl-10 pr-4 bg-[#e2eafc] rounded-md text-gray-700 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 shadow-inner"
+                  required
+                />
               </div>
 
-              {/* API Error Message */}
-              {apiError && (
-                <div className="bg-red-50 border-2 border-red-200 text-red-700 px-4 py-3 rounded-xl">
-                  <p className="text-sm">{apiError}</p>
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <button
+              {/* Login Button */}
+              <button 
                 type="submit"
                 disabled={loading}
-                className={`w-full bg-primary hover:bg-blue-700 text-white font-bold py-3 rounded-xl transition-colors shadow-lg hover:shadow-xl ${
-                  loading ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
+                className={`w-full bg-[#103e91] hover:bg-[#0d3275] text-white font-bold py-3 rounded-md transition duration-200 shadow-md mt-4 text-lg tracking-wide ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {loading ? 'MEMPROSES...' : 'MASUK'}
+                {loading ? 'MEMUAT...' : 'MASUK'}
               </button>
-
-              {/* Register Link */}
-              <div className="text-center bg-gray-50 rounded-xl p-4">
-                <span className="text-gray-700">Belum Punya Akun? </span>
-                <Link to="/register" className="text-orange-500 hover:text-orange-600 font-semibold">
-                  Daftar Disini
-                </Link>
-              </div>
             </form>
           </div>
         </div>
       </div>
-
-      {/* Right side - Logo & Background */}
-      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-blue-500 to-blue-400 items-center justify-center relative overflow-hidden">
-        {/* Decorative circles */}
-        <div className="absolute top-10 left-10 w-32 h-32 bg-white/10 rounded-full"></div>
-        <div className="absolute top-40 right-20 w-20 h-20 bg-white/10 rounded-full"></div>
-        <div className="absolute bottom-20 left-1/4 w-40 h-40 bg-white/10 rounded-full"></div>
-        <div className="absolute bottom-40 right-10 w-24 h-24 bg-white/10 rounded-full"></div>
-
-        {/* Logo placeholder */}
-        <div className="relative z-10">
-          <div className="w-64 h-64 bg-white rounded-3xl shadow-2xl"></div>
-        </div>
-      </div>
     </div>
   );
-}
+};
+
+export default LoginPage;

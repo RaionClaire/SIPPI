@@ -47,11 +47,19 @@ export const authAPI = {
   me: () => api.get('/auth/me'),
 };
 
+// Dashboard API
+export const dashboardAPI = {
+  getStats: () => api.get('/dashboard/stats'),
+};
+
 // Announcements API
 export const announcementAPI = {
-  getAll: (params) => api.get('/announcements', { params }),
-  getById: (id) => api.get(`/announcements/${id}`),
-  addComment: (id, comment) => api.post(`/announcements/${id}/comments`, comment),
+  getAll: (params) => api.get('/pengumuman', { params }),
+  getById: (id) => api.get(`/pengumuman/${id}`),
+  create: (data) => api.post('/pengumuman', data),
+  update: (id, data) => api.put(`/pengumuman/${id}`, data),
+  delete: (id) => api.delete(`/pengumuman/${id}`),
+  addComment: (id, comment) => api.post(`/pengumuman/${id}/comments`, comment),
 };
 
 // Documents API
@@ -71,6 +79,20 @@ export const notificationAPI = {
 export const userAPI = {
   getProfile: () => api.get('/profile'),
   updateProfile: (data) => api.put('/profile', data),
+  getAll: () => api.get('/users'),
+  getById: (id) => api.get(`/users/${id}`),
+  create: (data) => api.post('/users', data),
+  update: (id, data) => api.put(`/users/${id}`, data),
+  delete: (id) => api.delete(`/users/${id}`),
+};
+
+// Berkas API
+export const berkasAPI = {
+  getAll: () => api.get('/berkas'),
+  getById: (id) => api.get(`/berkas/${id}`),
+  create: (data) => api.post('/berkas', data),
+  update: (id, data) => api.put(`/berkas/${id}`, data),
+  delete: (id) => api.delete(`/berkas/${id}`),
 };
 
 export default api;

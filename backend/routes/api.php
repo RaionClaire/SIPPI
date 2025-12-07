@@ -1,8 +1,13 @@
 <?php
 
 use App\Http\Controllers\AuthController;
+use App\Http\Controllers\DashboardController;
 use Illuminate\Support\Facades\Route;
 
+// Dashboard routes
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('dashboard/stats', [DashboardController::class, 'stats'])->name('dashboard.stats');
+});
 
 Route::prefix('auth')->group(function () {
     Route::post('login', [AuthController::class, 'login'])->name('auth.login');

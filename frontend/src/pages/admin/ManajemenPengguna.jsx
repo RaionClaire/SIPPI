@@ -1,55 +1,67 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { HiPlus, HiOutlinePencil, HiOutlineTrash, HiOutlineUsers } from 'react-icons/hi';
 import StatCard from '../../components/StatCard';
+import { userAPI } from '../../services/api';
 
 export default function ManajemenPengguna() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [users, setUsers] = useState([]);
+  const [stats, setStats] = useState({
+    total: 0,
+    admin: 0,
+    mahasiswa: 0
+  });
 
-  const stats = {
-    total: 150,
-    admin: 5,
-    mahasiswa: 145
+  useEffect(() => {
+    fetchUsers();
+  }, []);
+
+  const fetchUsers = async () => {
+    try {
+      setLoading(true);
+      const response = await userAPI.getAll();
+      const usersData = response.data.data || [];
+      setUsers(usersData);
+      
+      // Calculate stats
+      setStats({
+        total: usersData.length,
+        admin: usersData.filter(u => u.role === 'admin').length,
+        mahasiswa: usersData.filter(u => u.role === 'mahasiswa').length
+      });
+    } catch (error) {
+      console.error('Error fetching users:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const users = [
-    {
-      id: 1,
-      name: 'Dr. Ahmad Fadilah',
-      email: 'ahmad.fadilah@univ.ac.id',
-      role: 'admin',
-      createdAt: '15/01/2024'
-    },
-    {
-      id: 2,
-      name: 'Budi Santoso',
-      email: 'budi.santoso@student.univ.ac.id',
-      role: 'mahasiswa',
-      createdAt: '20/02/2024'
-    },
-    {
-      id: 3,
-      name: 'Citra Dewi',
-      email: 'citra.dewi@student.univ.ac.id',
-      role: 'mahasiswa',
-      createdAt: '22/02/2024'
-    },
-    {
-      id: 4,
-      name: 'Deni Pratama',
-      email: 'deni.pratama@student.univ.ac.id',
-      role: 'mahasiswa',
-      createdAt: '25/02/2024'
-    },
-    {
-      id: 5,
-      name: 'Prof. Eko Wijaya',
-      email: 'eko.wijaya@univ.ac.id',
-      role: 'admin',
-      createdAt: '10/01/2024'
+  const handleDelete = async (id) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus pengguna ini?')) {
+      return;
     }
-  ];
+
+    try {
+      await userAPI.delete(id);
+      fetchUsers(); // Refresh list
+    } catch (error) {
+      console.error('Error deleting user:', error);
+      alert('Gagal menghapus pengguna');
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
+  };
 
   const getRoleBadge = (role) => {
     switch (role) {
@@ -137,19 +149,25 @@ export default function ManajemenPengguna() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b-2 border-gray-200">
-              <th className="text-left py-3 px-4 text-gray-600 font-semibold">NAMA</th>
-              <th className="text-left py-3 px-4 text-gray-600 font-semibold">EMAIL</th>
-              <th className="text-left py-3 px-4 text-gray-600 font-semibold">ROLE</th>
-              <th className="text-left py-3 px-4 text-gray-600 font-semibold">TANGGAL DIBUAT</th>
-              <th className="text-left py-3 px-4 text-gray-600 font-semibold">AKSI</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filteredUsers.map((user) => (
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-2 text-gray-500">Memuat data...</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="text-left py-3 px-4 text-gray-600 font-semibold">NAMA</th>
+                <th className="text-left py-3 px-4 text-gray-600 font-semibold">EMAIL</th>
+                <th className="text-left py-3 px-4 text-gray-600 font-semibold">ROLE</th>
+                <th className="text-left py-3 px-4 text-gray-600 font-semibold">TANGGAL DIBUAT</th>
+                <th className="text-left py-3 px-4 text-gray-600 font-semibold">AKSI</th>
+              </tr>
+            </thead>
+            <tbody>
+              {filteredUsers.map((user) => (
               <tr key={user.id} className="border-b border-gray-100 hover:bg-gray-50">
                 <td className="py-4 px-4">
                   <span className="text-gray-800 font-medium">{user.name}</span>
@@ -160,7 +178,7 @@ export default function ManajemenPengguna() {
                     {getRoleLabel(user.role)}
                   </span>
                 </td>
-                <td className="py-4 px-4 text-gray-600">{user.createdAt}</td>
+                <td className="py-4 px-4 text-gray-600">{formatDate(user.created_at)}</td>
                 <td className="py-4 px-4">
                   <div className="flex items-center gap-2">
                     <Link
@@ -171,6 +189,7 @@ export default function ManajemenPengguna() {
                       <HiOutlinePencil className="w-5 h-5" />
                     </Link>
                     <button
+                      onClick={() => handleDelete(user.id)}
                       className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
                       title="Hapus"
                     >
@@ -179,14 +198,15 @@ export default function ManajemenPengguna() {
                   </div>
                 </td>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+              ))}
+            </tbody>
+          </table>
 
-      {filteredUsers.length === 0 && (
-        <div className="text-center py-8 text-gray-500">
-          Tidak ada pengguna yang ditemukan
+          {filteredUsers.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              Tidak ada pengguna yang ditemukan
+            </div>
+          )}
         </div>
       )}
     </div>
