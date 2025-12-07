@@ -8,8 +8,8 @@ export default function Header() {
     <header className="bg-primary text-white shadow-md">
       <div className="flex items-center justify-between px-6 py-4">
         <div className="flex items-center gap-4">
-          {/* Logo placeholder */}
-          <div className="w-12 h-12 bg-white rounded-lg"></div>
+          {/* Logo */}
+          <img src="/unila.png" alt="Unila Logo" className="w-12 h-12 rounded-lg object-cover" />
           <div>
             <h1 className="text-2xl font-bold">SIPPI</h1>
             <p className="text-sm text-blue-100">Sistem Informasi Pengumuman Prodi Informatika</p>
