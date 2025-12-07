@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
 import { FaBell, FaUser } from 'react-icons/fa';
-import { HiOutlineViewGrid, HiOutlineSpeakerphone, HiOutlineDocumentText, HiOutlineLogout } from 'react-icons/hi';
+import { HiOutlineViewGrid, HiOutlineSpeakerphone, HiOutlineDocumentText, HiOutlineUsers, HiOutlineLogout } from 'react-icons/hi';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
@@ -20,6 +20,7 @@ export default function AdminLayout() {
     { path: '/admin', icon: HiOutlineViewGrid, label: 'Dashboard', exact: true },
     { path: '/admin/pengumuman', icon: HiOutlineSpeakerphone, label: 'Kelola Pengumuman' },
     { path: '/admin/berkas', icon: HiOutlineDocumentText, label: 'Kelola Berkas' },
+    { path: '/admin/pengguna', icon: HiOutlineUsers, label: 'Manajemen Pengguna' },
   ];
 
   return (

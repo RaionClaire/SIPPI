@@ -49,8 +49,9 @@ export default function BuatPengumuman() {
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-lg p-6 max-w-2xl">
-      <h1 className="text-2xl font-bold text-gray-800 mb-6">Buat Pengumuman Baru</h1>
+    <div className="flex justify-center">
+      <div className="bg-white rounded-2xl shadow-lg p-6 max-w-2xl w-full">
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">Buat Pengumuman Baru</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Judul */}
@@ -133,6 +134,7 @@ export default function BuatPengumuman() {
           </button>
         </div>
       </form>
+      </div>
     </div>
   );
 }

@@ -15,6 +15,8 @@ import KelolaPengumuman from './pages/admin/KelolaPengumuman';
 import BuatPengumuman from './pages/admin/BuatPengumuman';
 import DetailPengumuman from './pages/admin/DetailPengumuman';
 import KelolaBerkas from './pages/admin/KelolaBerkas';
+import ManajemenPengguna from './pages/admin/ManajemenPengguna';
+import TambahPengguna from './pages/admin/TambahPengguna';
 import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 
 function App() {
@@ -42,6 +44,9 @@ function App() {
         <Route path="/admin/pengumuman/:id" element={<DetailPengumuman />} />
         <Route path="/admin/pengumuman/:id/edit" element={<BuatPengumuman />} />
         <Route path="/admin/berkas" element={<KelolaBerkas />} />
+        <Route path="/admin/pengguna" element={<ManajemenPengguna />} />
+        <Route path="/admin/pengguna/tambah" element={<TambahPengguna />} />
+        <Route path="/admin/pengguna/:id/edit" element={<TambahPengguna />} />
       </Route>
     </Routes>
   );
