@@ -1,24 +1,38 @@
 import { useState, useEffect } from 'react';
 import AnnouncementCard from '../components/Card/AnnouncementCard';
 import { FaCalendarAlt } from 'react-icons/fa';
-import { mockAnnouncements } from '../utils/mockData';
+import { announcementAPI } from '../services/api';
 
 export default function Archive() {
   const [announcements, setAnnouncements] = useState([]);
   const [selectedMonth, setSelectedMonth] = useState('');
   const [selectedYear, setSelectedYear] = useState('');
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulasi fetch data - nanti ganti dengan API call
-    setAnnouncements(mockAnnouncements);
+    fetchArchivedAnnouncements();
   }, []);
+
+  const fetchArchivedAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const response = await announcementAPI.getAll();
+      const data = response.data.data || [];
+      // Filter for archived/old announcements (you might want to add status filter)
+      setAnnouncements(data);
+    } catch (error) {
+      console.error('Error fetching archived announcements:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Group announcements by month
   const groupedAnnouncements = announcements.reduce((acc, announcement) => {
-    // Extract month/year from date string (format: "DD Month YYYY")
-    const dateParts = announcement.date.split(' ');
-    const month = dateParts[1];
-    const year = dateParts[2];
+    // Extract month/year from created_at (ISO date string)
+    const date = new Date(announcement.created_at);
+    const month = date.toLocaleDateString('id-ID', { month: 'long' });
+    const year = date.getFullYear();
     const monthYear = `${month} ${year}`;
 
     if (!acc[monthYear]) {
@@ -82,8 +96,14 @@ export default function Archive() {
       </div>
 
       {/* Archived Announcements */}
-      <div className="space-y-8">
-        {periods.map((period) => {
+      {loading ? (
+        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+          <p className="text-gray-500">Memuat arsip...</p>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {periods.map((period) => {
           const [month, year] = period.split(' ');
           
           // Filter berdasarkan pilihan
@@ -102,13 +122,14 @@ export default function Archive() {
                 ))}
               </div>
             </div>
-          );
-        })}
-      </div>
+            );
+          })}
 
-      {periods.length === 0 && (
-        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
-          <p className="text-gray-500">Tidak ada arsip pengumuman</p>
+          {periods.length === 0 && (
+            <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+              <p className="text-gray-500">Tidak ada arsip pengumuman</p>
+            </div>
+          )}
         </div>
       )}
     </div>

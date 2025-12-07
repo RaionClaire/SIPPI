@@ -1,29 +1,66 @@
 import { useState, useEffect } from 'react';
 import { FaUser, FaHashtag, FaCalendarAlt, FaGraduationCap } from 'react-icons/fa';
-import { mockUserProfile } from '../utils/mockData';
+import { authAPI } from '../services/api';
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulasi fetch data - nanti ganti dengan API call
-    // userAPI.getProfile().then(...)
-    setProfile(mockUserProfile);
+    fetchProfile();
   }, []);
+
+  const fetchProfile = async () => {
+    try {
+      setLoading(true);
+      // Get user from localStorage or fetch from API
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      if (user.id) {
+        // Try to get fresh data from API
+        try {
+          const response = await authAPI.me();
+          setProfile(response.data.user);
+        } catch (error) {
+          // Fallback to localStorage if API fails
+          setProfile(user);
+        }
+      } else {
+        setProfile(user);
+      }
+    } catch (error) {
+      console.error('Error fetching profile:', error);
+      // Fallback to localStorage
+      const user = JSON.parse(localStorage.getItem('user') || '{}');
+      setProfile(user);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+          <p className="text-gray-500">Memuat profil...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!profile) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Loading...</p>
+        <p className="text-gray-500">Profil tidak ditemukan</p>
       </div>
     );
   }
 
   const profileFields = [
-    { icon: FaUser, label: 'Username', value: profile.username, color: 'bg-blue-50 text-blue-600' },
-    { icon: FaHashtag, label: 'NPM', value: profile.npm, color: 'bg-green-50 text-green-600' },
-    { icon: FaGraduationCap, label: 'Semester Saat Ini', value: profile.semester, color: 'bg-purple-50 text-purple-600' },
-    { icon: FaCalendarAlt, label: 'Tahun Masuk', value: profile.tahunMasuk, color: 'bg-orange-50 text-orange-600' }
+    { icon: FaUser, label: 'Email', value: profile.email, color: 'bg-blue-50 text-blue-600' },
+    { icon: FaHashtag, label: 'NPM', value: profile.npm || '-', color: 'bg-green-50 text-green-600' },
+    { icon: FaGraduationCap, label: 'Role', value: profile.role === 'mahasiswa' ? 'Mahasiswa' : 'Admin', color: 'bg-purple-50 text-purple-600' },
+    { icon: FaCalendarAlt, label: 'Bergabung Sejak', value: new Date(profile.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) || '-', color: 'bg-orange-50 text-orange-600' }
   ];
 
   return (
@@ -47,7 +84,7 @@ export default function Profile() {
 
         {/* Profile Info */}
         <div className="pt-20 px-8 pb-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-8">{profile.name}</h2>
+          <h2 className="text-2xl font-bold text-gray-900 mb-8">{profile.name || 'Pengguna'}</h2>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {profileFields.map((field, index) => (

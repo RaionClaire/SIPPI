@@ -2,7 +2,8 @@ import { useState, useEffect } from 'react';
 import AnnouncementCard from '../components/Card/AnnouncementCard';
 import FilterButton from '../components/FilterButton';
 import SearchBar from '../components/SearchBar';
-import { mockAnnouncements, mockCategories } from '../utils/mockData';
+import { announcementAPI } from '../services/api';
+import { mockCategories } from '../utils/mockData';
 
 export default function Dashboard() {
   const [announcements, setAnnouncements] = useState([]);
@@ -10,13 +11,27 @@ export default function Dashboard() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulasi fetch data - nanti ganti dengan API call
-    // announcementAPI.getAll().then(...)
-    setAnnouncements(mockAnnouncements);
-    setFilteredAnnouncements(mockAnnouncements);
+    fetchAnnouncements();
   }, []);
+
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const response = await announcementAPI.getAll();
+      const data = response.data.data || [];
+      // Only show published announcements for mahasiswa
+      const publishedAnnouncements = data.filter(a => a.status === 'published');
+      setAnnouncements(publishedAnnouncements);
+      setFilteredAnnouncements(publishedAnnouncements);
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     let filtered = announcements;
@@ -46,8 +61,8 @@ export default function Dashboard() {
   };
 
   // Pisahkan pengumuman penting dan semua pengumuman
-  const importantAnnouncements = filteredAnnouncements.filter(a => a.status === 'Penting');
-  const regularAnnouncements = filteredAnnouncements.filter(a => !a.status || a.status !== 'Penting');
+  const importantAnnouncements = filteredAnnouncements.filter(a => a.is_important);
+  const regularAnnouncements = filteredAnnouncements.filter(a => !a.is_important);
 
   return (
     <div className="max-w-6xl mx-auto">
@@ -113,7 +128,12 @@ export default function Dashboard() {
       {/* Semua Pengumuman */}
       <div>
         <h2 className="text-xl font-bold text-gray-900 mb-4">Semua Pengumuman</h2>
-        {regularAnnouncements.length > 0 ? (
+        {loading ? (
+          <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+            <p className="text-gray-500">Memuat pengumuman...</p>
+          </div>
+        ) : regularAnnouncements.length > 0 ? (
           <div className="space-y-4">
             {regularAnnouncements.map(announcement => (
               <AnnouncementCard key={announcement.id} announcement={announcement} />

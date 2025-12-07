@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaCalendarAlt, FaUser, FaPaperPlane } from 'react-icons/fa';
-import { mockAnnouncements } from '../utils/mockData.js';
+import { announcementAPI } from '../services/api';
 
 export default function AnnouncementDetail() {
   const { id } = useParams();
@@ -9,37 +9,67 @@ export default function AnnouncementDetail() {
   const [announcement, setAnnouncement] = useState(null);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulasi fetch data - nanti ganti dengan API call
-    // announcementAPI.getById(id).then(...)
-    const found = mockAnnouncements.find(a => a.id === parseInt(id));
-    if (found) {
-      setAnnouncement(found);
-      setComments(found.comments || []);
-    }
+    fetchAnnouncement();
   }, [id]);
 
-  const handleSubmitComment = (e) => {
+  const fetchAnnouncement = async () => {
+    try {
+      setLoading(true);
+      const response = await announcementAPI.getById(id);
+      const data = response.data.data;
+      setAnnouncement(data);
+      setComments(data.comments || []);
+    } catch (error) {
+      console.error('Error fetching announcement:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSubmitComment = async (e) => {
     e.preventDefault();
     if (!comment.trim()) return;
 
-    // Simulasi post comment - nanti ganti dengan API call
-    // announcementAPI.addComment(id, { text: comment }).then(...)
-    const newComment = {
-      id: comments.length + 1,
-      author: 'Current User',
-      date: new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' }),
-      text: comment
-    };
-    setComments([...comments, newComment]);
-    setComment('');
+    try {
+      await announcementAPI.addComment(id, { text: comment });
+      // Refresh announcement to get updated comments
+      fetchAnnouncement();
+      setComment('');
+    } catch (error) {
+      console.error('Error adding comment:', error);
+      alert('Gagal menambahkan komentar');
+    }
   };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', { 
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+        <p className="text-gray-500 mt-2">Memuat pengumuman...</p>
+      </div>
+    );
+  }
 
   if (!announcement) {
     return (
       <div className="flex items-center justify-center h-64">
-        <p className="text-gray-500">Loading...</p>
+        <div className="text-center">
+          <p className="text-gray-500 mb-4">Pengumuman tidak ditemukan</p>
+          <button onClick={() => navigate('/')} className="text-blue-600 hover:underline">Kembali ke Beranda</button>
+        </div>
       </div>
     );
   }
@@ -65,12 +95,12 @@ export default function AnnouncementDetail() {
       <div className="bg-white rounded-xl shadow-sm p-8 mb-6">
         {/* Tags */}
         <div className="flex items-center gap-2 mb-4">
-          <span className={`px-3 py-1 rounded-full text-sm font-medium ${categoryColors[announcement.category]}`}>
-            {announcement.category}
+          <span className={`px-3 py-1 rounded-full text-sm font-medium ${categoryColors[announcement.category?.name] || categoryColors.Akademik}`}>
+            {announcement.category?.name || 'Umum'}
           </span>
-          {announcement.status && (
+          {announcement.is_important && (
             <span className="px-3 py-1 rounded-full text-sm font-medium bg-red-500 text-white">
-              {announcement.status}
+              Penting
             </span>
           )}
         </div>
@@ -84,11 +114,11 @@ export default function AnnouncementDetail() {
         <div className="flex items-center gap-4 text-gray-600 mb-6 pb-6 border-b">
           <div className="flex items-center gap-2">
             <FaCalendarAlt />
-            <span>{announcement.date}</span>
+            <span>{formatDate(announcement.created_at)}</span>
           </div>
           <div className="flex items-center gap-2">
             <FaUser />
-            <span>{announcement.author}</span>
+            <span>{announcement.user?.name || 'Admin'}</span>
           </div>
         </div>
 

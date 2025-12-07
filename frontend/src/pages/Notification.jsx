@@ -1,33 +1,51 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaBullhorn, FaCheck } from 'react-icons/fa';
-import { mockNotifications } from '../utils/mockData';
+import { notificationAPI } from '../services/api';
 
 export default function Notification() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Simulasi fetch data - nanti ganti dengan API call
-    // notificationAPI.getAll().then(...)
-    setNotifications(mockNotifications);
+    fetchNotifications();
   }, []);
 
-  const handleMarkAllAsRead = () => {
-    // Simulasi mark all as read - nanti ganti dengan API call
-    // notificationAPI.markAllAsRead().then(...)
-    setNotifications(notifications.map(n => ({ ...n, isRead: true })));
+  const fetchNotifications = async () => {
+    try {
+      setLoading(true);
+      const response = await notificationAPI.getAll();
+      setNotifications(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const handleNotificationClick = (notif) => {
-    // Mark as read
-    setNotifications(notifications.map(n => 
-      n.id === notif.id ? { ...n, isRead: true } : n
-    ));
+  const handleMarkAllAsRead = async () => {
+    try {
+      await notificationAPI.markAllAsRead();
+      fetchNotifications();
+    } catch (error) {
+      console.error('Error marking all as read:', error);
+    }
+  };
 
-    // Navigate jika perlu
-    if (notif.type === 'announcement') {
-      navigate('/');
+  const handleNotificationClick = async (notif) => {
+    try {
+      if (!notif.isRead) {
+        await notificationAPI.markAsRead(notif.id);
+        fetchNotifications();
+      }
+
+      // Navigate jika perlu
+      if (notif.type === 'announcement') {
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Error marking notification as read:', error);
     }
   };
 
@@ -56,6 +74,14 @@ export default function Notification() {
         )}
       </div>
 
+      {/* Loading State */}
+      {loading ? (
+        <div className="bg-white rounded-xl shadow-sm p-12 text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+          <p className="text-gray-500">Memuat notifikasi...</p>
+        </div>
+      ) : (
+        <>
       {/* Unread Notifications */}
       {unreadNotifications.length > 0 && (
         <div className="mb-8">
@@ -123,6 +149,8 @@ export default function Notification() {
           <FaBullhorn className="text-5xl text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500">Tidak ada notifikasi</p>
         </div>
+      )}
+        </>
       )}
     </div>
   );
