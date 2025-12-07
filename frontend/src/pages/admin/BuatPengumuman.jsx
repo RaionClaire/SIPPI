@@ -1,27 +1,55 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { announcementAPI } from '../../services/api';
 
 export default function BuatPengumuman() {
   const navigate = useNavigate();
+  const { id } = useParams();
+  const isEditMode = !!id;
+
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: '',
     category_id: '',
     content: '',
-    isImportant: false
+    is_important: false
   });
 
   const categories = [
     { id: 1, name: 'Akademik' },
     { id: 2, name: 'Kegiatan' },
     { id: 3, name: 'Beasiswa' },
+    { id: 4, name: 'Lomba' }
   ];
+
+  useEffect(() => {
+    if (isEditMode) {
+      fetchAnnouncement();
+    }
+  }, [id, isEditMode]);
+
+  const fetchAnnouncement = async () => {
+    try {
+      const response = await announcementAPI.getById(id);
+      const announcement = response.data.data;
+      setFormData({
+        title: announcement.title,
+        category_id: announcement.category_id,
+        content: announcement.content,
+        is_important: announcement.is_important || false
+      });
+    } catch (error) {
+      console.error('Error fetching announcement:', error);
+      alert('Gagal memuat data pengumuman');
+    }
+  };
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
+    const fieldName = name === 'isImportant' ? 'is_important' : name;
     setFormData({
       ...formData,
-      [name]: type === 'checkbox' ? checked : value
+      [fieldName]: type === 'checkbox' ? checked : value
     });
   };
 
@@ -30,15 +58,24 @@ export default function BuatPengumuman() {
     setLoading(true);
 
     try {
-      // TODO: Call API to create announcement
-      console.log('Creating announcement:', formData);
-      
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      if (isEditMode) {
+        await announcementAPI.update(id, formData);
+        alert('Pengumuman berhasil diperbarui');
+      } else {
+        await announcementAPI.create(formData);
+        alert('Pengumuman berhasil dibuat');
+      }
       
       navigate('/admin/pengumuman');
     } catch (error) {
-      console.error('Error creating announcement:', error);
+      console.error('Error saving announcement:', error);
+      if (error.response?.data?.errors) {
+        const errors = error.response.data.errors;
+        const errorMessages = Object.values(errors).flat().join('\n');
+        alert(errorMessages);
+      } else {
+        alert(error.response?.data?.message || 'Gagal menyimpan pengumuman');
+      }
     } finally {
       setLoading(false);
     }
@@ -51,7 +88,7 @@ export default function BuatPengumuman() {
   return (
     <div className="flex justify-center">
       <div className="bg-white rounded-2xl shadow-lg p-6 max-w-2xl w-full">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Buat Pengumuman Baru</h1>
+        <h1 className="text-2xl font-bold text-gray-800 mb-6">{isEditMode ? 'Edit Pengumuman' : 'Buat Pengumuman Baru'}</h1>
 
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Judul */}
@@ -105,7 +142,7 @@ export default function BuatPengumuman() {
             type="checkbox"
             name="isImportant"
             id="isImportant"
-            checked={formData.isImportant}
+            checked={formData.is_important}
             onChange={handleChange}
             className="w-5 h-5 text-blue-600 border-2 border-gray-300 rounded focus:ring-blue-500"
           />
@@ -130,7 +167,7 @@ export default function BuatPengumuman() {
               loading ? 'opacity-50 cursor-not-allowed' : ''
             }`}
           >
-            {loading ? 'Menyimpan...' : 'Publikasikan'}
+            {loading ? 'Menyimpan...' : (isEditMode ? 'Simpan Perubahan' : 'Publikasikan')}
           </button>
         </div>
       </form>

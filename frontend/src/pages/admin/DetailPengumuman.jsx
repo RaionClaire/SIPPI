@@ -1,23 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { HiOutlineArrowLeft, HiOutlineExclamation } from 'react-icons/hi';
 import { FaCalendarAlt, FaUser, FaRegComment } from 'react-icons/fa';
+import { announcementAPI } from '../../services/api';
 
 export default function DetailPengumuman() {
   const { id } = useParams();
+  const [loading, setLoading] = useState(true);
+  const [announcement, setAnnouncement] = useState(null);
 
-  const [announcement] = useState({
-    id: 1,
-    title: 'Pengumuman Jadwal Ujian Akhir Semester Ganjil 2024/2025',
-    category: 'Akademik',
-    isImportant: true,
-    date: '20 November 2025',
-    author: 'Admin Prodi',
-    content: `Kepada seluruh mahasiswa Prodi Informatika,
-Dengan ini diumumkan bahwa jadwal ujian akhir semester genap tahun akademik 2024/2025 akan dilaksanakan mulai tanggal 15 Desember 2025.
+  useEffect(() => {
+    fetchAnnouncement();
+  }, [id]);
 
-Untuk jadwal lengkap setiap mata kuliah akan diinformasikan melalui portal akademik paling lambat tanggal 1 Desember 2025. Harap semua mahasiswa mempersiapkan diri dengan baik. Apabila ada pertanyaan, silakan menghubungi bagian akademik. Terima kasih atas perhatiannya.`
-  });
+  const fetchAnnouncement = async () => {
+    try {
+      setLoading(true);
+      const response = await announcementAPI.getById(id);
+      setAnnouncement(response.data.data);
+    } catch (error) {
+      console.error('Error fetching announcement:', error);
+      alert('Gagal memuat pengumuman');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const mockAnnouncement = {
+  };
 
   const [comments, setComments] = useState([
     {
@@ -45,6 +55,16 @@ Untuk jadwal lengkap setiap mata kuliah akan diinformasikan melalui portal akade
 
   const [replyText, setReplyText] = useState('');
 
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', { 
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
+  };
+
   const getCategoryColor = (category) => {
     const colors = {
       'Akademik': 'bg-blue-500',
@@ -53,6 +73,24 @@ Untuk jadwal lengkap setiap mata kuliah akan diinformasikan melalui portal akade
     };
     return colors[category] || 'bg-gray-500';
   };
+
+  if (loading) {
+    return (
+      <div className="text-center py-8">
+        <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+        <p className="mt-2 text-gray-500">Memuat pengumuman...</p>
+      </div>
+    );
+  }
+
+  if (!announcement) {
+    return (
+      <div className="text-center py-8">
+        <p className="text-gray-500">Pengumuman tidak ditemukan</p>
+        <Link to="/admin" className="text-blue-600 hover:underline mt-2 inline-block">Kembali ke Dashboard</Link>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -69,10 +107,10 @@ Untuk jadwal lengkap setiap mata kuliah akan diinformasikan melalui portal akade
       <div className="bg-white rounded-2xl shadow-lg p-6">
         {/* Tags */}
         <div className="flex items-center gap-2 mb-4">
-          <span className={`${getCategoryColor(announcement.category)} text-white text-sm px-4 py-1 rounded-full`}>
-            {announcement.category}
+          <span className={`${getCategoryColor(announcement.category?.name)} text-white text-sm px-4 py-1 rounded-full`}>
+            {announcement.category?.name || 'Umum'}
           </span>
-          {announcement.isImportant && (
+          {announcement.is_important && (
             <span className="flex items-center gap-1 bg-orange-500 text-white text-sm px-4 py-1 rounded-full">
               <HiOutlineExclamation className="w-4 h-4" />
               Penting
@@ -87,11 +125,11 @@ Untuk jadwal lengkap setiap mata kuliah akan diinformasikan melalui portal akade
         <div className="flex items-center gap-6 text-gray-500 text-sm mb-6">
           <span className="flex items-center gap-2">
             <FaCalendarAlt className="w-4 h-4" />
-            {announcement.date}
+            {formatDate(announcement.created_at)}
           </span>
           <span className="flex items-center gap-2">
             <FaUser className="w-4 h-4" />
-            {announcement.author}
+            {announcement.user?.name || 'Admin'}
           </span>
         </div>
 

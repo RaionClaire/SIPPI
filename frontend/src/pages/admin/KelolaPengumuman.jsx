@@ -1,59 +1,89 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { HiOutlineDocumentText, HiOutlineExclamation, HiOutlineCheck, HiOutlineArchive, HiPlus, HiOutlinePencil, HiOutlineCalendar, HiOutlineTrash, HiOutlineStar } from 'react-icons/hi';
 import StatCard from '../../components/StatCard';
+import { announcementAPI } from '../../services/api';
 
 export default function KelolaPengumuman() {
   const [stats, setStats] = useState({
-    total: 24,
-    penting: 12,
-    aktif: 20,
-    diarsipkan: 4
+    total: 0,
+    penting: 0,
+    aktif: 0,
+    diarsipkan: 0
   });
 
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
+  const [loading, setLoading] = useState(true);
+  const [announcements, setAnnouncements] = useState([]);
 
-  const announcements = [
-    {
-      id: 1,
-      title: 'Jadwal Ujian Akhir Semester Genap 2024/2025',
-      category: 'Akademik',
-      date: '17/11/2025',
-      status: 'Aktif',
-      isImportant: true
-    },
-    {
-      id: 2,
-      title: 'Pengumuman Libur Semester',
-      category: 'Akademik',
-      date: '12/11/2025',
-      status: 'Aktif',
-      isImportant: true
-    },
-    {
-      id: 3,
-      title: 'Pelatihan Sertifikasi IT untuk Mahasiswa',
-      category: 'Kegiatan',
-      date: '04/11/2025',
-      status: 'Arsip',
-      isImportant: false
-    },
-    {
-      id: 4,
-      title: 'Workshop Pengenalan Flutter',
-      category: 'Kegiatan',
-      date: '01/11/2025',
-      status: 'Arsip',
-      isImportant: false
+  useEffect(() => {
+    fetchAnnouncements();
+  }, []);
+
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true);
+      const response = await announcementAPI.getAll();
+      const data = response.data.data || [];
+      setAnnouncements(data);
+      
+      // Calculate stats
+      setStats({
+        total: data.length,
+        penting: data.filter(a => a.is_important).length,
+        aktif: data.filter(a => a.status === 'published').length,
+        diarsipkan: data.filter(a => a.status === 'archived').length
+      });
+    } catch (error) {
+      console.error('Error fetching announcements:', error);
+    } finally {
+      setLoading(false);
     }
+  };
+
+  const handleDelete = async (id) => {
+    if (!window.confirm('Apakah Anda yakin ingin menghapus pengumuman ini?')) {
+      return;
+    }
+
+    try {
+      await announcementAPI.delete(id);
+      fetchAnnouncements();
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      alert('Gagal menghapus pengumuman');
+    }
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', { 
+      day: '2-digit', 
+      month: '2-digit', 
+      year: 'numeric' 
+    });
+  };
+
+  const mockAnnouncements = [
   ];
 
   const getStatusColor = (status) => {
-    return status === 'Aktif' 
+    return status === 'published' 
       ? 'bg-green-100 text-green-700' 
       : 'bg-gray-100 text-gray-700';
   };
+
+  const getStatusLabel = (status) => {
+    return status === 'published' ? 'Aktif' : 'Arsip';
+  };
+
+  const filteredAnnouncements = announcements.filter(item => {
+    const matchesSearch = item.title.toLowerCase().includes(search.toLowerCase());
+    const matchesCategory = categoryFilter === '' || item.category?.name === categoryFilter;
+    return matchesSearch && matchesCategory;
+  });
 
   return (
     <div className="bg-white rounded-2xl shadow-lg p-6">
@@ -118,65 +148,79 @@ export default function KelolaPengumuman() {
       </div>
 
       {/* Table */}
-      <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b-2 border-gray-200">
-              <th className="text-left py-3 px-4 text-gray-600 font-semibold">JUDUL</th>
-              <th className="text-left py-3 px-4 text-gray-600 font-semibold">KATEGORI</th>
-              <th className="text-left py-3 px-4 text-gray-600 font-semibold">TANGGAL</th>
-              <th className="text-left py-3 px-4 text-gray-600 font-semibold">STATUS</th>
-              <th className="text-left py-3 px-4 text-gray-600 font-semibold">AKSI</th>
-            </tr>
-          </thead>
-          <tbody>
-            {announcements.map((item) => (
-              <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
-                <td className="py-4 px-4">
-                  <div className="flex items-center gap-2">
-                    {item.isImportant && (
-                      <HiOutlineStar className="w-5 h-5 text-yellow-500 fill-yellow-500" />
-                    )}
-                    <span className="text-gray-800">{item.title}</span>
-                  </div>
-                </td>
-                <td className="py-4 px-4">
-                  <span className="text-blue-600">{item.category}</span>
-                </td>
-                <td className="py-4 px-4 text-gray-600">{item.date}</td>
-                <td className="py-4 px-4">
-                  <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(item.status)}`}>
-                    {item.status}
-                  </span>
-                </td>
-                <td className="py-4 px-4">
-                  <div className="flex items-center gap-2">
-                    <Link
-                      to={`/admin/pengumuman/${item.id}/edit`}
-                      className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
-                      title="Edit"
-                    >
-                      <HiOutlinePencil className="w-5 h-5" />
-                    </Link>
-                    <button
-                      className="p-2 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                      title="Arsipkan"
-                    >
-                      <HiOutlineCalendar className="w-5 h-5" />
-                    </button>
-                    <button
-                      className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
-                      title="Hapus"
-                    >
-                      <HiOutlineTrash className="w-5 h-5" />
-                    </button>
-                  </div>
-                </td>
+      {loading ? (
+        <div className="text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+          <p className="mt-2 text-gray-500">Memuat data...</p>
+        </div>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b-2 border-gray-200">
+                <th className="text-left py-3 px-4 text-gray-600 font-semibold">JUDUL</th>
+                <th className="text-left py-3 px-4 text-gray-600 font-semibold">KATEGORI</th>
+                <th className="text-left py-3 px-4 text-gray-600 font-semibold">TANGGAL</th>
+                <th className="text-left py-3 px-4 text-gray-600 font-semibold">STATUS</th>
+                <th className="text-left py-3 px-4 text-gray-600 font-semibold">AKSI</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <tbody>
+              {filteredAnnouncements.map((item) => (
+                <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-2">
+                      {item.is_important && (
+                        <HiOutlineStar className="w-5 h-5 text-yellow-500 fill-yellow-500" />
+                      )}
+                      <span className="text-gray-800">{item.title}</span>
+                    </div>
+                  </td>
+                  <td className="py-4 px-4">
+                    <span className="text-blue-600">{item.category?.name || '-'}</span>
+                  </td>
+                  <td className="py-4 px-4 text-gray-600">{formatDate(item.created_at)}</td>
+                  <td className="py-4 px-4">
+                    <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(item.status)}`}>
+                      {getStatusLabel(item.status)}
+                    </span>
+                  </td>
+                  <td className="py-4 px-4">
+                    <div className="flex items-center gap-2">
+                      <Link
+                        to={`/admin/pengumuman/${item.id}/edit`}
+                        className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"
+                        title="Edit"
+                      >
+                        <HiOutlinePencil className="w-5 h-5" />
+                      </Link>
+                      <button
+                        className="p-2 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
+                        title="Arsipkan"
+                      >
+                        <HiOutlineCalendar className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
+                        title="Hapus"
+                      >
+                        <HiOutlineTrash className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+
+          {filteredAnnouncements.length === 0 && (
+            <div className="text-center py-8 text-gray-500">
+              Tidak ada pengumuman yang ditemukan
+            </div>
+          )}
+        </div>
+      )}
     </div>
   );
 }
