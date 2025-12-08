@@ -7,7 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 class Notification extends Model
 {
     protected $fillable=[
+        'user_id',
+        'type',
+        'title',
         'message',
+        'announcement_id',
+        'registration_file_id',
         'is_read'
     ];
 
@@ -17,5 +22,9 @@ class Notification extends Model
 
     public function announcement(){
         return $this->belongsTo(Announcement::class);
+    }
+
+    public function registrationFile(){
+        return $this->belongsTo(RegistrationFile::class);
     }
 }

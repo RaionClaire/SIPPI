@@ -61,6 +61,7 @@ export const announcementAPI = {
   update: (id, data) => api.put(`/pengumuman/${id}`, data),
   delete: (id) => api.delete(`/pengumuman/${id}`),
   toggleArchive: (id) => api.post(`/pengumuman/${id}/toggle-archive`),
+  toggleImportant: (id) => api.post(`/pengumuman/${id}/toggle-important`),
   addComment: (id, comment) => api.post(`/pengumuman/${id}/comments`, comment),
 };
 
@@ -73,8 +74,8 @@ export const documentAPI = {
 // Notifications API
 export const notificationAPI = {
   getAll: () => api.get('/notifications'),
-  markAsRead: (id) => api.put(`/notifications/${id}/read`),
-  markAllAsRead: () => api.put('/notifications/read-all'),
+  markAsRead: (id) => api.post(`/notifications/${id}/read`),
+  markAllAsRead: () => api.post('/notifications/mark-all-read'),
 };
 
 // User API
@@ -93,9 +94,15 @@ export const userAPI = {
 export const berkasAPI = {
   getAll: () => api.get('/berkas'),
   getById: (id) => api.get(`/berkas/${id}`),
-  create: (data) => api.post('/berkas', data),
+  create: (data) => api.post('/berkas', data, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  }),
   update: (id, data) => api.put(`/berkas/${id}`, data),
   delete: (id) => api.delete(`/berkas/${id}`),
+  approve: (id) => api.post(`/berkas/${id}/approve`),
+  reject: (id, data) => api.post(`/berkas/${id}/reject`, data),
 };
 
 // Category API

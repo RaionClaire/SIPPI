@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaBullhorn, FaCheck } from 'react-icons/fa';
+import { FaBullhorn, FaCheck, FaFileAlt, FaCheckCircle, FaTimesCircle } from 'react-icons/fa';
 import { notificationAPI } from '../services/api';
+import { format } from 'date-fns';
+import { id as idLocale } from 'date-fns/locale';
 
 export default function Notification() {
   const navigate = useNavigate();
@@ -35,23 +37,63 @@ export default function Notification() {
 
   const handleNotificationClick = async (notif) => {
     try {
-      if (!notif.isRead) {
+      if (!notif.is_read) {
         await notificationAPI.markAsRead(notif.id);
         fetchNotifications();
       }
 
-      // Navigate jika perlu
-      if (notif.type === 'announcement') {
+      // Navigate based on notification type
+      if (notif.type === 'announcement' && notif.announcement_id) {
         navigate('/');
+      } else if (notif.type === 'berkas_status') {
+        navigate('/upload-berkas');
       }
     } catch (error) {
       console.error('Error marking notification as read:', error);
     }
   };
 
-  const unreadCount = notifications.filter(n => !n.isRead).length;
-  const unreadNotifications = notifications.filter(n => !n.isRead);
-  const readNotifications = notifications.filter(n => n.isRead);
+  const formatDate = (dateString) => {
+    try {
+      return format(new Date(dateString), 'dd MMMM yyyy, HH:mm', { locale: idLocale });
+    } catch (error) {
+      return dateString;
+    }
+  };
+
+  const getNotificationIcon = (notif) => {
+    if (notif.type === 'announcement') {
+      return <FaBullhorn className="text-xl" />;
+    } else if (notif.type === 'berkas_status') {
+      if (notif.message.includes('disetujui')) {
+        return <FaCheckCircle className="text-xl" />;
+      } else if (notif.message.includes('ditolak')) {
+        return <FaTimesCircle className="text-xl" />;
+      }
+      return <FaFileAlt className="text-xl" />;
+    }
+    return <FaBullhorn className="text-xl" />;
+  };
+
+  const getIconBgColor = (notif, isRead) => {
+    if (isRead) return 'bg-gray-100 text-gray-600';
+    
+    if (notif.type === 'announcement') {
+      return 'bg-blue-600 text-white';
+    } else if (notif.type === 'berkas_status') {
+      if (notif.message.includes('disetujui')) {
+        return 'bg-green-600 text-white';
+      } else if (notif.message.includes('ditolak')) {
+        return 'bg-red-600 text-white';
+      }
+      return 'bg-yellow-600 text-white';
+    }
+    return 'bg-blue-600 text-white';
+  };
+
+  const unreadCount = notifications.filter(n => !n.is_read).length;
+  const unreadNotifications = notifications.filter(n => !n.is_read);
+  const readNotifications = notifications.filter(n => n.is_read);
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -94,17 +136,19 @@ export default function Notification() {
                 className="bg-blue-50 border border-blue-200 rounded-lg p-5 cursor-pointer hover:border-blue-400 transition-colors"
               >
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-blue-600 text-white rounded-lg">
-                    <FaBullhorn className="text-xl" />
+                  <div className={`p-3 rounded-lg ${getIconBgColor(notif, false)}`}>
+                    {getNotificationIcon(notif)}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 mb-2">
                       {notif.title}
                     </h3>
                     <p className="text-sm text-gray-700 mb-2">
-                      {notif.description}
+                      {notif.message}
                     </p>
-                    <span className="text-xs text-gray-500">{notif.date}</span>
+                    <span className="text-xs text-gray-500">
+                      {formatDate(notif.created_at)}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -125,17 +169,19 @@ export default function Notification() {
                 className="bg-white border border-gray-200 rounded-lg p-5 cursor-pointer hover:border-gray-300 transition-colors"
               >
                 <div className="flex items-start gap-4">
-                  <div className="p-3 bg-gray-100 text-gray-600 rounded-lg">
-                    <FaBullhorn className="text-xl" />
+                  <div className={`p-3 rounded-lg ${getIconBgColor(notif, true)}`}>
+                    {getNotificationIcon(notif)}
                   </div>
                   <div className="flex-1">
                     <h3 className="font-semibold text-gray-900 mb-2">
                       {notif.title}
                     </h3>
                     <p className="text-sm text-gray-600 mb-2">
-                      {notif.description}
+                      {notif.message}
                     </p>
-                    <span className="text-xs text-gray-500">{notif.date}</span>
+                    <span className="text-xs text-gray-500">
+                      {formatDate(notif.created_at)}
+                    </span>
                   </div>
                 </div>
               </div>

@@ -8,14 +8,19 @@ use Illuminate\Http\Request;
 class NotificationController extends Controller
 {
     /**
-     * Display a listing of the resource.
+     * Display a listing of the resource for authenticated user.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $notification = Notification::orderBy('created_at', 'desc')->get();
+        $notifications = Notification::where('user_id', $request->user()->id)
+            ->with(['announcement', 'registrationFile.user'])
+            ->orderBy('created_at', 'desc')
+            ->get();
+        
         return response()->json([
             'message' => "Daftar notifikasi",
-            'data' => $notification
+            'data' => $notifications,
+            'unread_count' => $notifications->where('is_read', false)->count()
         ], 200);
     }
 
@@ -103,6 +108,42 @@ class NotificationController extends Controller
 
         return response()->json([
             'message' => 'Notifikasi berhasil dihapus',
+        ], 200);
+    }
+
+    /**
+     * Mark notification as read.
+     */
+    public function markAsRead($id)
+    {
+        $notification = Notification::find($id);
+
+        if (!$notification) {
+            return response()->json([
+                'message' => 'Notifikasi tidak ditemukan',
+            ], 404);
+        }
+
+        $notification->is_read = true;
+        $notification->save();
+
+        return response()->json([
+            'message' => 'Notifikasi berhasil ditandai sebagai dibaca',
+            'data' => $notification
+        ], 200);
+    }
+
+    /**
+     * Mark all notifications as read for authenticated user.
+     */
+    public function markAllAsRead(Request $request)
+    {
+        Notification::where('user_id', $request->user()->id)
+            ->where('is_read', false)
+            ->update(['is_read' => true]);
+
+        return response()->json([
+            'message' => 'Semua notifikasi berhasil ditandai sebagai dibaca',
         ], 200);
     }
 }

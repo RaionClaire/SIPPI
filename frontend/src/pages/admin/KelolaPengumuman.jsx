@@ -19,6 +19,15 @@ export default function KelolaPengumuman() {
   const [loading, setLoading] = useState(true);
   const [announcements, setAnnouncements] = useState([]);
 
+  // --- NEW: Category Colors Definition ---
+  const categoryColors = {
+    'Akademik': 'bg-red-100 text-red-600 border-red-300',
+    'Beasiswa': 'bg-green-100 text-green-600 border-green-300',
+    'Lomba': 'bg-yellow-100 text-yellow-600 border-yellow-300',
+    'Informasi Sidang': 'bg-purple-100 text-purple-600 border-purple-300',
+    'Administrasi': 'bg-indigo-100 text-indigo-600 border-indigo-300'
+  };
+
   useEffect(() => {
     fetchAnnouncements();
   }, []);
@@ -58,6 +67,20 @@ export default function KelolaPengumuman() {
     }
   };
 
+  const handleToggleImportant = async (id, isImportant) => {
+    try {
+      await announcementAPI.toggleImportant(id);
+      enqueueSnackbar(
+        isImportant ? 'Pengumuman tidak lagi ditandai sebagai penting' : 'Pengumuman berhasil ditandai sebagai penting',
+        { variant: 'success' }
+      );
+      fetchAnnouncements();
+    } catch (error) {
+      console.error('Error toggling important:', error);
+      enqueueSnackbar('Gagal mengubah status penting', { variant: 'error' });
+    }
+  };
+
   const handleDelete = async (id) => {
     if (!window.confirm('Apakah Anda yakin ingin menghapus pengumuman ini?')) {
       return;
@@ -82,9 +105,6 @@ export default function KelolaPengumuman() {
       year: 'numeric' 
     });
   };
-
-  const mockAnnouncements = [
-  ];
 
   const getStatusColor = (archivedAt) => {
     return !archivedAt
@@ -192,20 +212,39 @@ export default function KelolaPengumuman() {
                       {item.is_important && (
                         <HiOutlineStar className="w-5 h-5 text-yellow-500 fill-yellow-500" />
                       )}
-                      <span className="text-gray-800">{item.title}</span>
+                      <span className="text-gray-800 font-medium">{item.title}</span>
                     </div>
                   </td>
+                  
+                  {/* --- UPDATED KATEGORI COLUMN --- */}
                   <td className="py-4 px-4">
-                    <span className="text-blue-600">{item.category?.name || '-'}</span>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold border ${
+                      categoryColors[item.category?.name] || 'bg-gray-100 text-gray-600 border-gray-300'
+                    }`}>
+                      {item.category?.name || '-'}
+                    </span>
                   </td>
+                  {/* ------------------------------- */}
+
                   <td className="py-4 px-4 text-gray-600">{formatDate(item.created_at)}</td>
                   <td className="py-4 px-4">
-                    <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(item.archived_at)}`}>
+                    <span className={`px-3 py-1 rounded-full text-xs font-semibold ${getStatusColor(item.archived_at)}`}>
                       {getStatusLabel(item.archived_at)}
                     </span>
                   </td>
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleToggleImportant(item.id, item.is_important)}
+                        className={`p-2 rounded-lg transition-colors ${
+                          item.is_important
+                            ? 'text-yellow-500 hover:bg-yellow-50'
+                            : 'text-gray-400 hover:text-yellow-500 hover:bg-yellow-50'
+                        }`}
+                        title={item.is_important ? 'Tandai Tidak Penting' : 'Tandai Sebagai Penting'}
+                      >
+                        <HiOutlineStar className={`w-5 h-5 ${item.is_important ? 'fill-yellow-500' : ''}`} />
+                      </button>
                       <Link
                         to={`/admin/pengumuman/${item.id}/edit`}
                         className="p-2 text-gray-500 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors"

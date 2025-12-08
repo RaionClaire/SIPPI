@@ -1,5 +1,6 @@
 import { NavLink, useNavigate } from 'react-router-dom';
-import { FaHome, FaFileAlt, FaBell, FaArchive, FaSignOutAlt } from 'react-icons/fa';
+import { FaHome, FaFileAlt, FaArchive, FaSignOutAlt } from 'react-icons/fa';
+import { HiOutlineUpload } from 'react-icons/hi';
 
 export default function Sidebar() {
   const navigate = useNavigate();
@@ -7,13 +8,14 @@ export default function Sidebar() {
   const handleLogout = () => {
     localStorage.removeItem('isAuthenticated');
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     navigate('/login');
   };
 
   const menuItems = [
     { path: '/', icon: FaHome, label: 'Beranda' },
     { path: '/berkas-administrasi', icon: FaFileAlt, label: 'Berkas Administrasi' },
-    { path: '/notifikasi', icon: FaBell, label: 'Notifikasi', badge: 2 },
+    { path: '/upload-berkas', icon: HiOutlineUpload, label: 'Upload Berkas' },
     { path: '/arsip', icon: FaArchive, label: 'Arsip' },
   ];
 

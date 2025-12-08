@@ -25,11 +25,12 @@ Route::prefix('pengumuman')->group(function () {
     Route::get('{id}', [App\Http\Controllers\AnnouncementController::class, 'show'])->name('pengumuman.show')->whereNumber('id');
 
     Route::middleware('auth:sanctum')->group(function () {
-        Route::post('/', [App\Http\Controllers\AnnouncementController::class, 'store'])->name('pengumuman.store');
+        Route::post('{id}', [App\Http\Controllers\AnnouncementController::class, 'store'])->name('pengumuman.store');
         Route::put('{id}', [App\Http\Controllers\AnnouncementController::class, 'update'])->name('pengumuman.update')->whereNumber('id');
         Route::delete('{id}', [App\Http\Controllers\AnnouncementController::class, 'destroy'])->name('pengumuman.destroy')->whereNumber('id');
         Route::post('{id}/publish', [App\Http\Controllers\AnnouncementController::class, 'publish'])->name('pengumuman.publish')->whereNumber('id');
         Route::post('{id}/toggle-archive', [App\Http\Controllers\AnnouncementController::class, 'toggleArchive'])->name('pengumuman.toggle-archive')->whereNumber('id');
+        Route::post('{id}/toggle-important', [App\Http\Controllers\AnnouncementController::class, 'toggleImportant'])->name('pengumuman.toggle-important')->whereNumber('id');
 
         // Comment routes
         Route::post('{id}/comments', [App\Http\Controllers\CommentController::class, 'store'])->name('pengumuman.comments.store')->whereNumber('id');
@@ -58,6 +59,8 @@ Route::prefix('berkas')->middleware('auth:sanctum')->group(function () {
     Route::get('{id}', [App\Http\Controllers\RegistrationFileController::class, 'show'])->name('berkas.show')->whereNumber('id');
     Route::put('{id}', [App\Http\Controllers\RegistrationFileController::class, 'update'])->name('berkas.update')->whereNumber('id');
     Route::delete('{id}', [App\Http\Controllers\RegistrationFileController::class, 'destroy'])->name('berkas.destroy')->whereNumber('id');
+    Route::post('{id}/approve', [App\Http\Controllers\RegistrationFileController::class, 'approve'])->name('berkas.approve')->whereNumber('id');
+    Route::post('{id}/reject', [App\Http\Controllers\RegistrationFileController::class, 'reject'])->name('berkas.reject')->whereNumber('id');
 });
 
 Route::prefix('notifications')->middleware('auth:sanctum')->group(function () {
@@ -65,6 +68,8 @@ Route::prefix('notifications')->middleware('auth:sanctum')->group(function () {
     Route::post('/', [App\Http\Controllers\NotificationController::class, 'store'])->name('notifications.store');
     Route::put('{id}', [App\Http\Controllers\NotificationController::class, 'update'])->name('notifications.update')->whereNumber('id');
     Route::delete('{id}', [App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy')->whereNumber('id');
+    Route::post('{id}/read', [App\Http\Controllers\NotificationController::class, 'markAsRead'])->name('notifications.read')->whereNumber('id');
+    Route::post('mark-all-read', [App\Http\Controllers\NotificationController::class, 'markAllAsRead'])->name('notifications.mark-all-read');
 });
 
 Route::prefix('categories')->group(function () {

@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\RegistrationFile;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -11,10 +13,19 @@ class RegistrationFileController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index()
+    public function index(Request $request)
     {
-        $registrationFiles = RegistrationFile::with('user:id,name,email')
-            ->orderBy('created_at', 'desc')
+        $user = $request->user();
+        
+        // If mahasiswa, only show their own files
+        // If admin, show all files
+        $query = RegistrationFile::with('user:id,name,email,npm_nip');
+        
+        if ($user->role === 'mahasiswa') {
+            $query->where('user_id', $user->id);
+        }
+        
+        $registrationFiles = $query->orderBy('created_at', 'desc')
             ->get()
             ->map(function ($file) {
                 $file->url = Storage::url($file->file_path);
@@ -47,7 +58,20 @@ class RegistrationFileController extends Controller
             'type' => $validated['type'],
             'file_path' => $storedPath,
             'filename' => $originalName,
+            'status' => 'pending',
         ]);
+
+        // Create notifications for all admin users
+        $admins = User::where('role', 'admin')->get();
+        foreach ($admins as $admin) {
+            Notification::create([
+                'user_id' => $admin->id,
+                'type' => 'berkas_status',
+                'title' => 'Berkas Baru Menunggu Persetujuan',
+                'message' => 'Berkas "' . $this->getTypeLabel($validated['type']) . '" dari ' . $request->user()->name . ' menunggu persetujuan.',
+                'registration_file_id' => $registrationFile->id,
+            ]);
+        }
 
         return response()->json([
             'message' => 'Berkas pendaftaran berhasil diunggah',
@@ -154,5 +178,88 @@ class RegistrationFileController extends Controller
         return response()->json([
             'message' => 'Berkas pendaftaran berhasil dihapus',
         ], 200);
+    }
+
+    /**
+     * Approve a registration file (admin only).
+     */
+    public function approve($id)
+    {
+        $registrationFile = RegistrationFile::find($id);
+
+        if (!$registrationFile) {
+            return response()->json([
+                'message' => 'Berkas pendaftaran tidak ditemukan',
+            ], 404);
+        }
+
+        $registrationFile->status = 'approved';
+        $registrationFile->rejection_reason = null;
+        $registrationFile->save();
+
+        // Create notification for the user
+        Notification::create([
+            'user_id' => $registrationFile->user_id,
+            'type' => 'berkas_status',
+            'title' => 'Berkas Disetujui',
+            'message' => 'Berkas "' . $this->getTypeLabel($registrationFile->type) . '" Anda telah disetujui.',
+            'registration_file_id' => $registrationFile->id,
+        ]);
+
+        return response()->json([
+            'message' => 'Berkas berhasil disetujui',
+            'data' => $registrationFile
+        ], 200);
+    }
+
+    /**
+     * Reject a registration file (admin only).
+     */
+    public function reject(Request $request, $id)
+    {
+        $validated = $request->validate([
+            'rejection_reason' => 'required|string',
+        ]);
+
+        $registrationFile = RegistrationFile::find($id);
+
+        if (!$registrationFile) {
+            return response()->json([
+                'message' => 'Berkas pendaftaran tidak ditemukan',
+            ], 404);
+        }
+
+        $registrationFile->status = 'rejected';
+        $registrationFile->rejection_reason = $validated['rejection_reason'];
+        $registrationFile->save();
+
+        // Create notification for the user
+        Notification::create([
+            'user_id' => $registrationFile->user_id,
+            'type' => 'berkas_status',
+            'title' => 'Berkas Ditolak',
+            'message' => 'Berkas "' . $this->getTypeLabel($registrationFile->type) . '" Anda ditolak. Alasan: ' . $validated['rejection_reason'],
+            'registration_file_id' => $registrationFile->id,
+        ]);
+
+        return response()->json([
+            'message' => 'Berkas berhasil ditolak',
+            'data' => $registrationFile
+        ], 200);
+    }
+
+    /**
+     * Get label for file type.
+     */
+    private function getTypeLabel($type)
+    {
+        $labels = [
+            'proposal' => 'Lembar Persetujuan Pembimbing',
+            'hasil' => 'Berita Acara',
+            'kompre' => 'Kartu Kendali Bimbingan',
+            'kp' => 'Draf Laporan Proposal',
+        ];
+
+        return $labels[$type] ?? $type;
     }
 }

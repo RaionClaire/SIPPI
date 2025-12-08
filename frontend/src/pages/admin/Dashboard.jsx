@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { HiOutlineDocumentText, HiOutlineClock, HiOutlineCheckCircle, HiOutlineFilter, HiOutlineSearch, HiOutlineExclamation } from 'react-icons/hi';
+import { 
+  HiOutlineDocumentText, 
+  HiOutlineClock, 
+  HiOutlineCheckCircle, 
+  HiOutlineFilter, 
+  HiOutlineSearch, 
+  HiOutlineExclamationCircle 
+} from 'react-icons/hi';
 import { FaCalendarAlt, FaUser } from 'react-icons/fa';
 import { dashboardAPI, announcementAPI } from '../../services/api';
 
@@ -44,15 +51,16 @@ export default function AdminDashboard() {
     }
   };
 
-  const getCategoryColor = (categoryName) => {
-    const colors = {
-        'Akademik': 'bg-red-500',
-        'Beasiswa': 'bg-green-500',
-        'Lomba': 'bg-yellow-500',
-        'Informasi Sidang': 'bg-purple-500',
-        'Administrasi': 'bg-indigo-500'
+  // Helper for Pastel Badge Styles (Matches the image)
+  const getCategoryStyle = (categoryName) => {
+    const styles = {
+        'Akademik': 'bg-red-100 text-red-600',
+        'Beasiswa': 'bg-blue-100 text-blue-600',
+        'Lomba': 'bg-yellow-100 text-yellow-600',
+        'Kegiatan': 'bg-blue-100 text-blue-600',
+        'Informasi': 'bg-purple-100 text-purple-600',
     };
-    return colors[categoryName] || 'bg-gray-500';
+    return styles[categoryName] || 'bg-gray-100 text-gray-600';
   };
 
   const formatDate = (dateString) => {
@@ -66,110 +74,128 @@ export default function AdminDashboard() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Stats Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl p-6 shadow-lg flex items-center gap-4">
-          <div className="w-14 h-14 bg-blue-100 rounded-xl flex items-center justify-center">
-            <HiOutlineDocumentText className="w-7 h-7 text-blue-600" />
+    <div className="space-y-8 font-sans">
+      
+      {/* Stats Cards Section */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        {/* Card 1: Total Pengumuman (Blue Border Style) */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border-2 border-blue-500 flex flex-col items-center justify-center text-center relative overflow-hidden">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="w-12 h-12 bg-blue-50 rounded-lg flex items-center justify-center">
+              <HiOutlineDocumentText className="w-6 h-6 text-blue-600" />
+            </div>
+            <div className="text-left">
+               <p className="text-gray-500 text-sm font-medium">Total</p>
+               <p className="text-gray-500 text-sm font-medium -mt-1">Pengumuman</p>
+            </div>
           </div>
-          <div>
-            <p className="text-gray-500 text-sm">Total Pengumuman</p>
-            <p className="text-3xl font-bold text-gray-800">{stats.totalPengumuman}</p>
-          </div>
+          <p className="text-4xl font-bold text-gray-800">{stats.totalPengumuman}</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-lg flex items-center gap-4">
-          <div className="w-14 h-14 bg-orange-100 rounded-xl flex items-center justify-center">
-            <HiOutlineClock className="w-7 h-7 text-orange-600" />
+        {/* Card 2: Berkas Pending (Standard Style) */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="w-12 h-12 bg-orange-50 rounded-lg flex items-center justify-center">
+              <HiOutlineClock className="w-6 h-6 text-orange-500" />
+            </div>
+            <p className="text-gray-600 font-medium">Berkas Pending</p>
           </div>
-          <div>
-            <p className="text-gray-500 text-sm">Berkas Pending</p>
-            <p className="text-3xl font-bold text-gray-800">{stats.berkasPending}</p>
-          </div>
+          <p className="text-4xl font-bold text-gray-800">{stats.berkasPending}</p>
         </div>
 
-        <div className="bg-white rounded-2xl p-6 shadow-lg flex items-center gap-4">
-          <div className="w-14 h-14 bg-green-100 rounded-xl flex items-center justify-center">
-            <HiOutlineCheckCircle className="w-7 h-7 text-green-600" />
+        {/* Card 3: Berkas Disetujui (Standard Style) */}
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center">
+          <div className="flex items-center gap-4 mb-2">
+            <div className="w-12 h-12 bg-green-50 rounded-lg flex items-center justify-center">
+              <HiOutlineCheckCircle className="w-6 h-6 text-green-500" />
+            </div>
+            <p className="text-gray-600 font-medium">Berkas Disetujui</p>
           </div>
-          <div>
-            <p className="text-gray-500 text-sm">Berkas Disetujui</p>
-            <p className="text-3xl font-bold text-gray-800">{stats.berkasDisetujui}</p>
-          </div>
+          <p className="text-4xl font-bold text-gray-800">{stats.berkasDisetujui}</p>
         </div>
       </div>
 
-      {/* Filter & Search */}
-      <div className="flex gap-4">
-        <button className="flex items-center gap-2 bg-white px-4 py-2 rounded-xl shadow hover:shadow-md transition-all">
-          <HiOutlineFilter className="w-5 h-5 text-gray-500" />
-          <span className="text-gray-700">Filter Kategori</span>
+      {/* Filter & Search Bar */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <button className="flex items-center gap-2 bg-white px-6 py-3 rounded-2xl shadow-sm border border-gray-200 hover:bg-gray-50 transition-colors text-gray-600 font-medium whitespace-nowrap">
+          <HiOutlineFilter className="w-5 h-5 text-blue-500" />
+          <span>Filter Kategori</span>
         </button>
 
         <div className="flex-1 relative">
-          <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 w-5 h-5" />
+          <HiOutlineSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-blue-500 w-5 h-5" />
           <input
             type="text"
             placeholder="Cari Pengumuman"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-12 pr-4 py-2 bg-white rounded-xl shadow focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full pl-12 pr-4 py-3 bg-white rounded-2xl shadow-sm border border-gray-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           />
         </div>
       </div>
 
-      {/* Important Announcements */}
+      {/* Pengumuman Penting Section */}
       {importantAnnouncements.length > 0 && (
         <div>
-          <div className="flex items-center gap-2 mb-4">
+          {/* Section Header with Red Accent Bar */}
+          <div className="flex items-center gap-3 mb-4 pl-1">
             <div className="w-1 h-6 bg-red-500 rounded-full"></div>
-            <h2 className="text-lg font-semibold">Pengumuman Penting</h2>
+            <h2 className="text-lg font-medium text-gray-800">Pengumuman Penting</h2>
           </div>
 
-          {importantAnnouncements.map((announcement) => (
-            <Link
-              key={announcement.id}
-              to={`/admin/pengumuman/${announcement.id}`}
-              className="block bg-white rounded-2xl p-6 shadow-lg border-l-4 border-red-500 hover:shadow-xl transition-all mb-4"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`${getCategoryColor(announcement.category?.name)} text-white text-xs px-3 py-1 rounded-full`}>
-                  {announcement.category?.name || 'Umum'}
-                </span>
-                <span className="flex items-center gap-1 bg-red-100 text-red-600 text-xs px-3 py-1 rounded-full">
-                  <HiOutlineExclamation className="w-4 h-4" />
-                  Penting
-                </span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">{announcement.title}</h3>
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{announcement.content}</p>
-              <div className="flex items-center gap-4 text-gray-500 text-sm">
-                <span className="flex items-center gap-1">
-                  <FaCalendarAlt className="w-4 h-4" />
-                  {formatDate(announcement.created_at)}
-                </span>
-                <span className="flex items-center gap-1">
-                  <FaUser className="w-4 h-4" />
-                  {announcement.author?.name || 'Admin'}
-                </span>
-              </div>
-            </Link>
-          ))}
+          <div className="space-y-4">
+            {importantAnnouncements.map((announcement) => (
+              <Link
+                key={announcement.id}
+                to={`/admin/pengumuman/${announcement.id}`}
+                className="block bg-white rounded-2xl p-6 shadow-sm border-l-4 border-red-500 hover:shadow-md transition-all"
+              >
+                <div className="flex items-center gap-3 mb-3">
+                  {/* Category Pill */}
+                  <span className={`${getCategoryStyle(announcement.category?.name)} px-3 py-1 rounded-full text-xs font-semibold`}>
+                    {announcement.category?.name || 'Umum'}
+                  </span>
+                  
+                  {/* Penting Indicator */}
+                  <span className="flex items-center gap-1 text-red-500 text-sm font-medium">
+                    <HiOutlineExclamationCircle className="w-5 h-5" />
+                    Penting
+                  </span>
+                </div>
+
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{announcement.title}</h3>
+                <p className="text-gray-500 text-sm mb-4 line-clamp-2 leading-relaxed">
+                  {announcement.content}
+                </p>
+
+                <div className="flex items-center gap-6 text-gray-400 text-sm border-t border-gray-100 pt-4">
+                  <span className="flex items-center gap-2">
+                    <FaCalendarAlt className="w-4 h-4" />
+                    {formatDate(announcement.created_at)}
+                  </span>
+                  <span className="flex items-center gap-2">
+                    <FaUser className="w-3 h-3" />
+                    {announcement.author?.name || 'Admin Prodi'}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
         </div>
       )}
 
-      {/* All Announcements */}
+      {/* Semua Pengumuman Section */}
       <div>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-1 h-6 bg-blue-500 rounded-full"></div>
-          <h2 className="text-lg font-semibold">Semua Pengumuman</h2>
+        {/* Section Header with Blue Accent Bar */}
+        <div className="flex items-center gap-3 mb-4 pl-1">
+          <div className="w-1 h-6 bg-blue-600 rounded-full"></div>
+          <h2 className="text-lg font-medium text-gray-800">Semua Pengumuman</h2>
         </div>
 
         {loading ? (
-          <div className="text-center py-8">
+          <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
             <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-            <p className="mt-2 text-gray-500">Memuat pengumuman...</p>
+            <p className="mt-4 text-gray-500">Memuat data...</p>
           </div>
         ) : allAnnouncements.length > 0 ? (
           <div className="space-y-4">
@@ -177,31 +203,39 @@ export default function AdminDashboard() {
               <Link
                 key={announcement.id}
                 to={`/admin/pengumuman/${announcement.id}`}
-                className="block bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all"
+                className="block bg-white rounded-2xl p-6 shadow-sm border-l-4 border-blue-600 hover:shadow-md transition-all"
               >
-                <div className="flex items-center gap-2 mb-3">
-                  <span className={`${getCategoryColor(announcement.category?.name)} text-white text-xs px-3 py-1 rounded-full`}>
+                <div className="flex items-center gap-3 mb-3">
+                  {/* Category Pill */}
+                  <span className={`${getCategoryStyle(announcement.category?.name)} px-3 py-1 rounded-full text-xs font-semibold`}>
                     {announcement.category?.name || 'Umum'}
                   </span>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-800 mb-2">{announcement.title}</h3>
-                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{announcement.content}</p>
-                <div className="flex items-center gap-4 text-gray-500 text-sm">
-                  <span className="flex items-center gap-1">
+
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">{announcement.title}</h3>
+                <p className="text-gray-500 text-sm mb-4 line-clamp-2 leading-relaxed">
+                  {announcement.content}
+                </p>
+
+                <div className="flex items-center gap-6 text-gray-400 text-sm border-t border-gray-100 pt-4">
+                  <span className="flex items-center gap-2">
                     <FaCalendarAlt className="w-4 h-4" />
                     {formatDate(announcement.created_at)}
                   </span>
-                  <span className="flex items-center gap-1">
-                    <FaUser className="w-4 h-4" />
-                    {announcement.author?.name || 'Admin'}
+                  <span className="flex items-center gap-2">
+                    <FaUser className="w-3 h-3" />
+                    {announcement.author?.name || 'Admin Prodi'}
                   </span>
                 </div>
               </Link>
             ))}
           </div>
         ) : (
-          <div className="text-center py-8 bg-white rounded-2xl">
-            <p className="text-gray-500">Belum ada pengumuman</p>
+          <div className="text-center py-12 bg-white rounded-2xl border border-gray-100">
+            <div className="bg-gray-50 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
+              <HiOutlineDocumentText className="w-8 h-8 text-gray-400" />
+            </div>
+            <p className="text-gray-500 font-medium">Belum ada pengumuman</p>
           </div>
         )}
       </div>

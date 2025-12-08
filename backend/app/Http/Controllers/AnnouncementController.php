@@ -3,6 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Announcement;
+use App\Models\Notification;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 
@@ -42,7 +44,8 @@ class AnnouncementController extends Controller
             'content' => $validated['content'],
             'category_id' => $validated['category_id'],
             'author_id' => $request->user()->id,
-            'status' => 'draft',
+            'status' => 'published',
+            'is_important' => $request->is_important ?? false,
         ]);
 
         $attachments = [];
@@ -63,6 +66,18 @@ class AnnouncementController extends Controller
                     'url' => Storage::url($storedPath),
                 ];
             }
+        }
+
+        // Create notifications for all mahasiswa users about new announcement
+        $mahasiswas = User::where('role', 'mahasiswa')->get();
+        foreach ($mahasiswas as $mahasiswa) {
+            Notification::create([
+                'user_id' => $mahasiswa->id,
+                'type' => 'announcement',
+                'title' => 'Pengumuman Baru',
+                'message' => 'Pengumuman baru: "' . $announcement->title . '"',
+                'announcement_id' => $announcement->id,
+            ]);
         }
 
         return response()->json([
@@ -173,6 +188,28 @@ class AnnouncementController extends Controller
 
         return response()->json([
             'message' => 'Pengumuman berhasil dihapus',
+        ], 200);
+    }
+
+    /**
+     * Toggle important status of announcement.
+     */
+    public function toggleImportant($id)
+    {
+        $announcement = Announcement::find($id);
+
+        if (!$announcement) {
+            return response()->json([
+                'message' => 'Pengumuman tidak ditemukan',
+            ], 404);
+        }
+
+        $announcement->is_important = !$announcement->is_important;
+        $announcement->save();
+
+        return response()->json([
+            'message' => $announcement->is_important ? 'Pengumuman ditandai sebagai penting' : 'Pengumuman tidak lagi ditandai sebagai penting',
+            'data' => $announcement
         ], 200);
     }
 }

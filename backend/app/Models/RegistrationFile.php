@@ -11,10 +11,17 @@ class RegistrationFile extends Model
         'type',
         'file_path',
         'filename',
+        'status',
+        'rejection_reason',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function notifications()
+    {
+        return $this->hasMany(Notification::class);
     }
 }

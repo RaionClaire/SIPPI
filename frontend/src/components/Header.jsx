@@ -1,9 +1,29 @@
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FaUserCircle } from 'react-icons/fa';
+import { FaBell, FaUserCircle } from 'react-icons/fa';
+import { notificationAPI } from '../services/api';
 
 export default function Header() {
   const navigate = useNavigate();
+  const [unreadCount, setUnreadCount] = useState(0);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+
+  useEffect(() => {
+    fetchUnreadCount();
+    
+    // Poll for new notifications every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  const fetchUnreadCount = async () => {
+    try {
+      const response = await notificationAPI.getAll();
+      setUnreadCount(response.data.unread_count || 0);
+    } catch (error) {
+      console.error('Error fetching notifications:', error);
+    }
+  };
 
   return (
     <header className="bg-primary text-white shadow-md">
@@ -17,13 +37,29 @@ export default function Header() {
           </div>
         </div>
         
-        <button
-          onClick={() => navigate('/profil')}
-          className="flex items-center gap-3 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
-        >
-          <span className="font-medium">{user.name || 'User'}</span>
-          <FaUserCircle className="text-3xl" />
-        </button>
+        <div className="flex items-center gap-4">
+          {/* Notification Bell */}
+          <button
+            onClick={() => navigate('/notifikasi')}
+            className="relative p-2 hover:bg-blue-700 rounded-lg transition-colors"
+          >
+            <FaBell className="w-6 h-6" />
+            {unreadCount > 0 && (
+              <span className="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
+                {unreadCount}
+              </span>
+            )}
+          </button>
+          
+          {/* Profile with Name */}
+          <button
+            onClick={() => navigate('/profil')}
+            className="flex items-center gap-2 p-2 hover:bg-blue-700 rounded-lg transition-colors"
+          >
+            <FaUserCircle className="w-8 h-8" />
+            <span className="font-medium">{user.name || 'User'}</span>
+          </button>
+        </div>
       </div>
     </header>
   );

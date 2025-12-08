@@ -9,6 +9,8 @@ import Notification from './pages/Notification';
 import Archive from './pages/Archive';
 import Profile from './pages/Profile';
 import ChangePassword from './pages/ChangePassword';
+import UploadBerkas from './pages/UploadBerkas';
+import UploadBerkasDetail from './pages/UploadBerkasDetail';
 import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
 import AdminDashboard from './pages/admin/Dashboard';
@@ -32,6 +34,8 @@ function App() {
         <Route path="/pengumuman/:id" element={<AnnouncementDetail />} />
         <Route path="/berkas-administrasi" element={<BerkasAdministrasi />} />
         <Route path="/berkas/:type" element={<BerkasDetail />} />
+        <Route path="/upload-berkas" element={<UploadBerkas />} />
+        <Route path="/upload-berkas/:category" element={<UploadBerkasDetail />} />
         <Route path="/notifikasi" element={<Notification />} />
         <Route path="/arsip" element={<Archive />} />
         <Route path="/profil" element={<Profile />} />
@@ -39,7 +43,7 @@ function App() {
       </Route>
 
       {/* Admin Routes */}
-      <Route element={<ProtectedRoute><AdminLayout /></ProtectedRoute>}>
+      <Route element={<ProtectedRoute adminOnly={true}><AdminLayout /></ProtectedRoute>}>
         <Route path="/admin" element={<AdminDashboard />} />
         <Route path="/admin/pengumuman" element={<KelolaPengumuman />} />
         <Route path="/admin/pengumuman/buat" element={<BuatPengumuman />} />

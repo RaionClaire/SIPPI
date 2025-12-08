@@ -20,25 +20,28 @@ export default function AdminLayout() {
   ];
 
   return (
-    <div className="min-h-screen bg-gray-100">
+    <div className="min-h-screen bg-[#F8F9FE]"> {/* Updated background to match pastel theme */}
       {/* Use shared Header component */}
       <Header />
 
       <div className="flex">
         {/* Sidebar */}
         <aside className="w-64 h-[calc(100vh-80px)] p-4 sticky top-0 flex-shrink-0">
-          <nav className="bg-white rounded-2xl shadow-lg p-4 space-y-2 h-full flex flex-col">
-            <div className="flex-1 space-y-2">
+          {/* Card Container - Updated to match Mahasiswa style */}
+          <div className="bg-white rounded-2xl shadow-lg p-4 flex flex-col h-full">
+            
+            {/* Menu Items */}
+            <nav className="space-y-2 flex-1">
               {navItems.map((item) => (
                 <NavLink
                   key={item.path}
                   to={item.path}
                   end={item.exact}
                   className={({ isActive }) =>
-                    `flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                    `flex items-center gap-3 px-4 py-3 rounded-lg transition-colors ${
                       isActive
-                        ? 'bg-blue-600 text-white shadow-md'
-                        : 'text-gray-700 hover:bg-gray-100'
+                        ? 'bg-blue-50 text-blue-600' // Pastel Active State
+                        : 'text-gray-700 hover:bg-gray-50' // Pastel Hover State
                     }`
                   }
                 >
@@ -46,17 +49,20 @@ export default function AdminLayout() {
                   <span className="font-medium">{item.label}</span>
                 </NavLink>
               ))}
+            </nav>
+
+            {/* Logout Section - Updated with border divider */}
+            <div className="mt-auto pt-4 border-t border-gray-200">
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-3 px-4 py-3 rounded-lg text-red-600 hover:bg-red-50 transition-colors w-full"
+              >
+                <HiOutlineLogout className="w-5 h-5" />
+                <span className="font-medium">Keluar</span>
+              </button>
             </div>
 
-            {/* Logout */}
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-red-500 hover:bg-red-50 transition-all w-full mt-auto"
-            >
-              <HiOutlineLogout className="w-5 h-5" />
-              <span className="font-medium">Keluar</span>
-            </button>
-          </nav>
+          </div>
         </aside>
 
         {/* Main Content */}
