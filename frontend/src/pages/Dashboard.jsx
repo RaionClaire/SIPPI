@@ -2,12 +2,12 @@ import { useState, useEffect } from 'react';
 import AnnouncementCard from '../components/Card/AnnouncementCard';
 import FilterButton from '../components/FilterButton';
 import SearchBar from '../components/SearchBar';
-import { announcementAPI } from '../services/api';
-import { mockCategories } from '../utils/mockData';
+import { announcementAPI, categoryAPI } from '../services/api';
 
 export default function Dashboard() {
   const [announcements, setAnnouncements] = useState([]);
   const [filteredAnnouncements, setFilteredAnnouncements] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilterModal, setShowFilterModal] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -15,6 +15,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchAnnouncements();
+    fetchCategories();
   }, []);
 
   const fetchAnnouncements = async () => {
@@ -33,19 +34,30 @@ export default function Dashboard() {
     }
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await categoryAPI.getAll();
+      setCategories(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+    }
+  };
+
   useEffect(() => {
     let filtered = announcements;
 
     // Filter by category
     if (selectedCategories.length > 0) {
-      filtered = filtered.filter(a => selectedCategories.includes(a.category));
+      filtered = filtered.filter(a => 
+        selectedCategories.includes(a.category?.name || a.category)
+      );
     }
 
     // Filter by search
     if (searchQuery) {
       filtered = filtered.filter(a => 
         a.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        a.excerpt.toLowerCase().includes(searchQuery.toLowerCase())
+        a.content.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
@@ -93,21 +105,24 @@ export default function Dashboard() {
               </button>
             </div>
             <div className="space-y-2">
-              {mockCategories.map(category => (
-                <label
-                  key={category.name}
-                  className="flex items-center gap-3 cursor-pointer hover:bg-white p-2 rounded transition-colors"
-                >
-                  <input
-                    type="checkbox"
-                    checked={selectedCategories.includes(category.name)}
-                    onChange={() => handleCategoryToggle(category.name)}
-                    className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
-                  />
-                  <span className="flex-1">{category.name}</span>
-                  <span className="text-sm text-gray-500">({category.count})</span>
-                </label>
-              ))}
+              {categories.map(category => {
+                const count = announcements.filter(a => a.category?.name === category.name).length;
+                return (
+                  <label
+                    key={category.id}
+                    className="flex items-center gap-3 cursor-pointer hover:bg-white p-2 rounded transition-colors"
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedCategories.includes(category.name)}
+                      onChange={() => handleCategoryToggle(category.name)}
+                      className="w-4 h-4 text-blue-600 rounded focus:ring-2 focus:ring-blue-500"
+                    />
+                    <span className="flex-1">{category.name}</span>
+                    <span className="text-sm text-gray-500">({count})</span>
+                  </label>
+                );
+              })}
             </div>
           </div>
         )}

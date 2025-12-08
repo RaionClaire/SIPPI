@@ -22,15 +22,19 @@ class CommentController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(Request $request)
+    public function store(Request $request, $announcementId)
     {
         $validated = $request->validate([
-            'post_id' => 'required|integer|exists:posts,id',
-            'user_id' => 'required|integer|exists:users,id',
             'content' => 'required|string',
         ]);
 
-        $comment = Comment::create($validated);
+        $comment = Comment::create([
+            'announcement_id' => $announcementId,
+            'user_id' => $request->user()->id,
+            'content' => $validated['content'],
+        ]);
+
+        $comment->load('user');
 
         return response()->json([
             'message' => 'Komentar berhasil dibuat',
@@ -70,9 +74,14 @@ class CommentController extends Controller
             ], 404);
         }
 
+        // Only allow user to edit their own comment
+        if ($comment->user_id !== $request->user()->id) {
+            return response()->json([
+                'message' => 'Tidak diizinkan',
+            ], 403);
+        }
+
         $validated = $request->validate([
-            'post_id' => 'required|integer|exists:posts,id',
-            'user_id' => 'required|integer|exists:users,id',
             'content' => 'required|string',
         ]);
 

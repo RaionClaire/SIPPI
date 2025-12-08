@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { FaArrowLeft, FaCalendarAlt, FaUser, FaPaperPlane } from 'react-icons/fa';
+import { useSnackbar } from 'notistack';
 import { announcementAPI } from '../services/api';
 
 export default function AnnouncementDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { enqueueSnackbar } = useSnackbar();
   const [announcement, setAnnouncement] = useState(null);
   const [comment, setComment] = useState('');
   const [comments, setComments] = useState([]);
@@ -34,13 +36,14 @@ export default function AnnouncementDetail() {
     if (!comment.trim()) return;
 
     try {
-      await announcementAPI.addComment(id, { text: comment });
+      await announcementAPI.addComment(id, { content: comment });
+      enqueueSnackbar('Komentar berhasil ditambahkan', { variant: 'success' });
       // Refresh announcement to get updated comments
       fetchAnnouncement();
       setComment('');
     } catch (error) {
       console.error('Error adding comment:', error);
-      alert('Gagal menambahkan komentar');
+      enqueueSnackbar('Gagal menambahkan komentar', { variant: 'error' });
     }
   };
 
@@ -75,9 +78,11 @@ export default function AnnouncementDetail() {
   }
 
   const categoryColors = {
-    Akademik: 'bg-red-100 text-red-600',
-    Kegiatan: 'bg-blue-100 text-blue-600',
-    Beasiswa: 'bg-green-100 text-green-600'
+    Akademik: 'bg-red-100 text-red-600 border-red-300',
+    Beasiswa: 'bg-green-100 text-green-600 border-green-300',
+    Lomba: 'bg-yellow-100 text-yellow-600 border-yellow-300',
+    'Informasi Sidang': 'bg-purple-100 text-purple-600 border-purple-300',
+    Administrasi: 'bg-indigo-100 text-indigo-600 border-indigo-300'
   };
 
   return (
@@ -118,7 +123,7 @@ export default function AnnouncementDetail() {
           </div>
           <div className="flex items-center gap-2">
             <FaUser />
-            <span>{announcement.user?.name || 'Admin'}</span>
+            <span>{announcement.author?.name || 'Admin'}</span>
           </div>
         </div>
 
@@ -159,20 +164,24 @@ export default function AnnouncementDetail() {
 
         {/* Comments List */}
         <div className="space-y-6">
-          {comments.map(c => (
-            <div key={c.id} className="flex gap-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                <FaUser className="text-blue-600" />
-              </div>
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <span className="font-semibold text-gray-900">{c.author}</span>
-                  <span className="text-sm text-gray-500">{c.date}</span>
+          {comments.length === 0 ? (
+            <p className="text-gray-500 text-center py-8">Belum ada komentar. Jadilah yang pertama berkomentar!</p>
+          ) : (
+            comments.map(c => (
+              <div key={c.id} className="flex gap-4">
+                <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                  <FaUser className="text-blue-600" />
                 </div>
-                <p className="text-gray-700">{c.text}</p>
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <span className="font-semibold text-gray-900">{c.user?.name || 'Anonim'}</span>
+                    <span className="text-sm text-gray-500">{formatDate(c.created_at)}</span>
+                  </div>
+                  <p className="text-gray-700">{c.content}</p>
+                </div>
               </div>
-            </div>
-          ))}
+            ))
+          )}
         </div>
       </div>
     </div>

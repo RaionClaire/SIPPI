@@ -42,4 +42,9 @@ class Announcement extends Model
     {
         return $this->hasMany(announcement_attachments::class);
     }
+
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
 }

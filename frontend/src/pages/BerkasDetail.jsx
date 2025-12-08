@@ -10,8 +10,6 @@ export default function BerkasDetail() {
   const [pageInfo, setPageInfo] = useState({});
 
   useEffect(() => {
-    // Simulasi fetch data - nanti ganti dengan API call
-    // documentAPI.getByType(type).then(...)
     const docs = mockDocuments[type] || [];
     setDocuments(docs);
 
@@ -43,8 +41,6 @@ export default function BerkasDetail() {
   }, [type]);
 
   const handleDownload = (docId, docName) => {
-    // Simulasi download - nanti ganti dengan API call
-    // documentAPI.download(docId).then(...)
     alert(`Mengunduh: ${docName}`);
   };
 

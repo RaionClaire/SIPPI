@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 import { announcementAPI, categoryAPI } from '../../services/api';
 
 export default function BuatPengumuman() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { enqueueSnackbar } = useSnackbar();
   const isEditMode = !!id;
 
   const [loading, setLoading] = useState(false);
@@ -29,7 +31,7 @@ export default function BuatPengumuman() {
       setCategories(response.data.data || []);
     } catch (error) {
       console.error('Error fetching categories:', error);
-      alert('Gagal memuat kategori');
+      enqueueSnackbar('Gagal memuat kategori', { variant: 'error' });
     }
   };
 
@@ -45,7 +47,7 @@ export default function BuatPengumuman() {
       });
     } catch (error) {
       console.error('Error fetching announcement:', error);
-      alert('Gagal memuat data pengumuman');
+      enqueueSnackbar('Gagal memuat data pengumuman', { variant: 'error' });
     }
   };
 
@@ -65,10 +67,10 @@ export default function BuatPengumuman() {
     try {
       if (isEditMode) {
         await announcementAPI.update(id, formData);
-        alert('Pengumuman berhasil diperbarui');
+        enqueueSnackbar('Pengumuman berhasil diperbarui', { variant: 'success' });
       } else {
         await announcementAPI.create(formData);
-        alert('Pengumuman berhasil dibuat');
+        enqueueSnackbar('Pengumuman berhasil dibuat', { variant: 'success' });
       }
       
       navigate('/admin/pengumuman');
@@ -76,10 +78,10 @@ export default function BuatPengumuman() {
       console.error('Error saving announcement:', error);
       if (error.response?.data?.errors) {
         const errors = error.response.data.errors;
-        const errorMessages = Object.values(errors).flat().join('\n');
-        alert(errorMessages);
+        const errorMessages = Object.values(errors).flat().join(', ');
+        enqueueSnackbar(errorMessages, { variant: 'error' });
       } else {
-        alert(error.response?.data?.message || 'Gagal menyimpan pengumuman');
+        enqueueSnackbar(error.response?.data?.message || 'Gagal menyimpan pengumuman', { variant: 'error' });
       }
     } finally {
       setLoading(false);

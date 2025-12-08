@@ -28,6 +28,12 @@ Route::prefix('pengumuman')->group(function () {
         Route::put('{id}', [App\Http\Controllers\AnnouncementController::class, 'update'])->name('pengumuman.update')->whereNumber('id');
         Route::delete('{id}', [App\Http\Controllers\AnnouncementController::class, 'destroy'])->name('pengumuman.destroy')->whereNumber('id');
         Route::post('{id}/publish', [App\Http\Controllers\AnnouncementController::class, 'publish'])->name('pengumuman.publish')->whereNumber('id');
+        Route::post('{id}/toggle-archive', [App\Http\Controllers\AnnouncementController::class, 'toggleArchive'])->name('pengumuman.toggle-archive')->whereNumber('id');
+
+        // Comment routes
+        Route::post('{id}/comments', [App\Http\Controllers\CommentController::class, 'store'])->name('pengumuman.comments.store')->whereNumber('id');
+        Route::put('comments/{id}', [App\Http\Controllers\CommentController::class, 'update'])->name('comments.update')->whereNumber('id');
+        Route::delete('comments/{id}', [App\Http\Controllers\CommentController::class, 'destroy'])->name('comments.destroy')->whereNumber('id');
 
         Route::post('{pengumuman}/lampiran', [App\Http\Controllers\AnnouncementAttachmentsController::class, 'store'])->name('pengumuman.lampiran.store')->whereNumber('pengumuman');
         Route::get('{pengumuman}/lampiran', [App\Http\Controllers\AnnouncementAttachmentsController::class, 'index'])->name('pengumuman.lampiran.index')->whereNumber('pengumuman');

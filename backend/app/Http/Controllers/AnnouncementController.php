@@ -13,7 +13,9 @@ class AnnouncementController extends Controller
      */
     public function index()
     {
-        $announcement = Announcement::orderBy('created_at', 'desc')->get();
+        $announcement = Announcement::with(['category', 'author'])
+            ->orderBy('created_at', 'desc')
+            ->get();
         return response()->json([
             'message' => "Daftar pengumuman",
             'data' => $announcement
@@ -72,9 +74,10 @@ class AnnouncementController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Announcement $announcement)
+    public function show($id)
     {
-        $announcement = Announcement::find($announcement->id);
+        $announcement = Announcement::with(['category', 'author', 'comments.user'])
+            ->find($id);
 
         if (!$announcement) {
             return response()->json([
@@ -107,12 +110,47 @@ class AnnouncementController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
+            'category_id' => 'sometimes|exists:categories,id',
         ]);
 
         $announcement->update($validated);
+        $announcement->load(['category', 'author']);
 
         return response()->json([
             'message' => 'Pengumuman berhasil diperbarui',
+            'data' => $announcement
+        ], 200);
+    }
+
+    /**
+     * Archive or unarchive an announcement.
+     */
+    public function toggleArchive(Request $request, $id)
+    {
+        $announcement = Announcement::find($id);
+
+        if (!$announcement) {
+            return response()->json([
+                'message' => 'Pengumuman tidak ditemukan',
+            ], 404);
+        }
+
+        if ($announcement->archived_at) {
+            // Unarchive
+            $announcement->archived_at = null;
+            $announcement->archived_by = null;
+            $message = 'Pengumuman berhasil dibatalkan dari arsip';
+        } else {
+            // Archive
+            $announcement->archived_at = now();
+            $announcement->archived_by = $request->user()->id;
+            $message = 'Pengumuman berhasil diarsipkan';
+        }
+
+        $announcement->save();
+
+        return response()->json([
+            'message' => $message,
             'data' => $announcement
         ], 200);
     }

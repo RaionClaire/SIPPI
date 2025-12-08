@@ -1,13 +1,9 @@
-import { useState } from 'react';
 import { Outlet, NavLink, useNavigate } from 'react-router-dom';
-import { FaBell, FaUser } from 'react-icons/fa';
 import { HiOutlineViewGrid, HiOutlineSpeakerphone, HiOutlineDocumentText, HiOutlineUsers, HiOutlineLogout } from 'react-icons/hi';
+import Header from '../components/Header';
 
 export default function AdminLayout() {
   const navigate = useNavigate();
-  const [notificationCount] = useState(2);
-  
-  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   const handleLogout = () => {
     localStorage.removeItem('token');
@@ -25,42 +21,8 @@ export default function AdminLayout() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      {/* Header */}
-      <header className="bg-gradient-to-r from-blue-700 to-blue-600 text-white px-6 py-4">
-        <div className="flex items-center justify-between">
-          {/* Logo */}
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center">
-              <img src="/logo.png" alt="Logo" className="w-10 h-10 object-contain" onError={(e) => e.target.style.display = 'none'} />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold">SIPPI</h1>
-              <p className="text-sm text-blue-200">Sistem Informasi Pengumuman Prodi Informatika</p>
-            </div>
-          </div>
-
-          {/* Right side */}
-          <div className="flex items-center gap-4">
-            {/* Notifications */}
-            <button className="relative p-2 hover:bg-white/10 rounded-full transition-colors">
-              <FaBell className="w-5 h-5" />
-              {notificationCount > 0 && (
-                <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center">
-                  {notificationCount}
-                </span>
-              )}
-            </button>
-
-            {/* User */}
-            <div className="flex items-center gap-3 bg-white/10 rounded-full px-4 py-2">
-              <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-                <FaUser className="text-blue-600" />
-              </div>
-              <span className="font-medium">{user.name || 'Admin SIPPI'}</span>
-            </div>
-          </div>
-        </div>
-      </header>
+      {/* Use shared Header component */}
+      <Header />
 
       <div className="flex">
         {/* Sidebar */}

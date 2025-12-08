@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { HiPlus, HiOutlinePencil, HiOutlineTrash, HiOutlineUsers } from 'react-icons/hi';
+import { useSnackbar } from 'notistack';
 import StatCard from '../../components/StatCard';
 import { userAPI } from '../../services/api';
 
 export default function ManajemenPengguna() {
+  const { enqueueSnackbar } = useSnackbar();
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('');
   const [loading, setLoading] = useState(true);
@@ -46,10 +48,11 @@ export default function ManajemenPengguna() {
 
     try {
       await userAPI.delete(id);
+      enqueueSnackbar('Pengguna berhasil dihapus', { variant: 'success' });
       fetchUsers(); // Refresh list
     } catch (error) {
       console.error('Error deleting user:', error);
-      alert('Gagal menghapus pengguna');
+      enqueueSnackbar('Gagal menghapus pengguna', { variant: 'error' });
     }
   };
 

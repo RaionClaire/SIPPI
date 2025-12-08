@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { HiOutlineDocumentText, HiOutlineExclamation, HiOutlineCheck, HiOutlineArchive, HiPlus, HiOutlinePencil, HiOutlineCalendar, HiOutlineTrash, HiOutlineStar } from 'react-icons/hi';
+import { useSnackbar } from 'notistack';
 import StatCard from '../../components/StatCard';
 import { announcementAPI } from '../../services/api';
 
 export default function KelolaPengumuman() {
+  const { enqueueSnackbar } = useSnackbar();
   const [stats, setStats] = useState({
     total: 0,
     penting: 0,
@@ -32,13 +34,27 @@ export default function KelolaPengumuman() {
       setStats({
         total: data.length,
         penting: data.filter(a => a.is_important).length,
-        aktif: data.filter(a => a.status === 'published').length,
-        diarsipkan: data.filter(a => a.status === 'archived').length
+        aktif: data.filter(a => !a.archived_at).length,
+        diarsipkan: data.filter(a => a.archived_at).length
       });
     } catch (error) {
       console.error('Error fetching announcements:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleToggleArchive = async (id, isArchived) => {
+    try {
+      await announcementAPI.toggleArchive(id);
+      enqueueSnackbar(
+        isArchived ? 'Pengumuman berhasil dibatalkan dari arsip' : 'Pengumuman berhasil diarsipkan',
+        { variant: 'success' }
+      );
+      fetchAnnouncements();
+    } catch (error) {
+      console.error('Error toggling archive:', error);
+      enqueueSnackbar('Gagal mengubah status arsip', { variant: 'error' });
     }
   };
 
@@ -49,10 +65,11 @@ export default function KelolaPengumuman() {
 
     try {
       await announcementAPI.delete(id);
+      enqueueSnackbar('Pengumuman berhasil dihapus', { variant: 'success' });
       fetchAnnouncements();
     } catch (error) {
       console.error('Error deleting announcement:', error);
-      alert('Gagal menghapus pengumuman');
+      enqueueSnackbar('Gagal menghapus pengumuman', { variant: 'error' });
     }
   };
 
@@ -69,14 +86,14 @@ export default function KelolaPengumuman() {
   const mockAnnouncements = [
   ];
 
-  const getStatusColor = (status) => {
-    return status === 'published' 
+  const getStatusColor = (archivedAt) => {
+    return !archivedAt
       ? 'bg-green-100 text-green-700' 
       : 'bg-gray-100 text-gray-700';
   };
 
-  const getStatusLabel = (status) => {
-    return status === 'published' ? 'Aktif' : 'Arsip';
+  const getStatusLabel = (archivedAt) => {
+    return !archivedAt ? 'Aktif' : 'Arsip';
   };
 
   const filteredAnnouncements = announcements.filter(item => {
@@ -118,8 +135,10 @@ export default function KelolaPengumuman() {
         >
           <option value="">Semua Kategori</option>
           <option value="Akademik">Akademik</option>
-          <option value="Kegiatan">Kegiatan</option>
           <option value="Beasiswa">Beasiswa</option>
+          <option value="Lomba">Lomba</option>
+          <option value="Informasi Sidang">Informasi Sidang</option>
+          <option value="Administrasi">Administrasi</option>
         </select>
       </div>
 
@@ -181,8 +200,8 @@ export default function KelolaPengumuman() {
                   </td>
                   <td className="py-4 px-4 text-gray-600">{formatDate(item.created_at)}</td>
                   <td className="py-4 px-4">
-                    <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(item.status)}`}>
-                      {getStatusLabel(item.status)}
+                    <span className={`px-3 py-1 rounded-full text-sm ${getStatusColor(item.archived_at)}`}>
+                      {getStatusLabel(item.archived_at)}
                     </span>
                   </td>
                   <td className="py-4 px-4">
@@ -195,10 +214,15 @@ export default function KelolaPengumuman() {
                         <HiOutlinePencil className="w-5 h-5" />
                       </Link>
                       <button
-                        className="p-2 text-gray-500 hover:text-orange-600 hover:bg-orange-50 rounded-lg transition-colors"
-                        title="Arsipkan"
+                        onClick={() => handleToggleArchive(item.id, item.archived_at)}
+                        className={`p-2 text-gray-500 rounded-lg transition-colors ${
+                          item.archived_at 
+                            ? 'hover:text-green-600 hover:bg-green-50' 
+                            : 'hover:text-orange-600 hover:bg-orange-50'
+                        }`}
+                        title={item.archived_at ? 'Batalkan Arsip' : 'Arsipkan'}
                       >
-                        <HiOutlineCalendar className="w-5 h-5" />
+                        <HiOutlineArchive className="w-5 h-5" />
                       </button>
                       <button
                         onClick={() => handleDelete(item.id)}

@@ -44,13 +44,25 @@ export default function AdminDashboard() {
     }
   };
 
-  const getCategoryColor = (category) => {
+  const getCategoryColor = (categoryName) => {
     const colors = {
-      'Akademik': 'bg-blue-500',
-      'Kegiatan': 'bg-green-500',
-      'Beasiswa': 'bg-purple-500',
+        'Akademik': 'bg-red-500',
+        'Beasiswa': 'bg-green-500',
+        'Lomba': 'bg-yellow-500',
+        'Informasi Sidang': 'bg-purple-500',
+        'Administrasi': 'bg-indigo-500'
     };
-    return colors[category] || 'bg-gray-500';
+    return colors[categoryName] || 'bg-gray-500';
+  };
+
+  const formatDate = (dateString) => {
+    if (!dateString) return '-';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('id-ID', { 
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric'
+    });
   };
 
   return (
@@ -108,42 +120,44 @@ export default function AdminDashboard() {
       </div>
 
       {/* Important Announcements */}
-      <div>
-        <div className="flex items-center gap-2 mb-4">
-          <div className="w-1 h-6 bg-red-500 rounded-full"></div>
-          <h2 className="text-lg font-semibold">Pengumuman Penting</h2>
-        </div>
+      {importantAnnouncements.length > 0 && (
+        <div>
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-1 h-6 bg-red-500 rounded-full"></div>
+            <h2 className="text-lg font-semibold">Pengumuman Penting</h2>
+          </div>
 
-        {importantAnnouncements.map((announcement) => (
-          <Link
-            key={announcement.id}
-            to={`/admin/pengumuman/${announcement.id}`}
-            className="block bg-white rounded-2xl p-6 shadow-lg border-l-4 border-red-500 hover:shadow-xl transition-all mb-4"
-          >
-            <div className="flex items-center gap-2 mb-3">
-              <span className={`${getCategoryColor(announcement.category)} text-white text-xs px-3 py-1 rounded-full`}>
-                {announcement.category}
-              </span>
-              <span className="flex items-center gap-1 bg-red-100 text-red-600 text-xs px-3 py-1 rounded-full">
-                <HiOutlineExclamation className="w-4 h-4" />
-                Penting
-              </span>
-            </div>
-            <h3 className="text-lg font-semibold text-gray-800 mb-2">{announcement.title}</h3>
-            <p className="text-gray-600 text-sm mb-4 line-clamp-2">{announcement.content}</p>
-            <div className="flex items-center gap-4 text-gray-500 text-sm">
-              <span className="flex items-center gap-1">
-                <FaCalendarAlt className="w-4 h-4" />
-                {announcement.date}
-              </span>
-              <span className="flex items-center gap-1">
-                <FaUser className="w-4 h-4" />
-                {announcement.author}
-              </span>
-            </div>
-          </Link>
-        ))}
-      </div>
+          {importantAnnouncements.map((announcement) => (
+            <Link
+              key={announcement.id}
+              to={`/admin/pengumuman/${announcement.id}`}
+              className="block bg-white rounded-2xl p-6 shadow-lg border-l-4 border-red-500 hover:shadow-xl transition-all mb-4"
+            >
+              <div className="flex items-center gap-2 mb-3">
+                <span className={`${getCategoryColor(announcement.category?.name)} text-white text-xs px-3 py-1 rounded-full`}>
+                  {announcement.category?.name || 'Umum'}
+                </span>
+                <span className="flex items-center gap-1 bg-red-100 text-red-600 text-xs px-3 py-1 rounded-full">
+                  <HiOutlineExclamation className="w-4 h-4" />
+                  Penting
+                </span>
+              </div>
+              <h3 className="text-lg font-semibold text-gray-800 mb-2">{announcement.title}</h3>
+              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{announcement.content}</p>
+              <div className="flex items-center gap-4 text-gray-500 text-sm">
+                <span className="flex items-center gap-1">
+                  <FaCalendarAlt className="w-4 h-4" />
+                  {formatDate(announcement.created_at)}
+                </span>
+                <span className="flex items-center gap-1">
+                  <FaUser className="w-4 h-4" />
+                  {announcement.author?.name || 'Admin'}
+                </span>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
 
       {/* All Announcements */}
       <div>
@@ -152,33 +166,44 @@ export default function AdminDashboard() {
           <h2 className="text-lg font-semibold">Semua Pengumuman</h2>
         </div>
 
-        <div className="space-y-4">
-          {allAnnouncements.map((announcement) => (
-            <Link
-              key={announcement.id}
-              to={`/admin/pengumuman/${announcement.id}`}
-              className="block bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all"
-            >
-              <div className="flex items-center gap-2 mb-3">
-                <span className={`${getCategoryColor(announcement.category)} text-white text-xs px-3 py-1 rounded-full`}>
-                  {announcement.category}
-                </span>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">{announcement.title}</h3>
-              <p className="text-gray-600 text-sm mb-4 line-clamp-2">{announcement.content}</p>
-              <div className="flex items-center gap-4 text-gray-500 text-sm">
-                <span className="flex items-center gap-1">
-                  <FaCalendarAlt className="w-4 h-4" />
-                  {announcement.date}
-                </span>
-                <span className="flex items-center gap-1">
-                  <FaUser className="w-4 h-4" />
-                  {announcement.author}
-                </span>
-              </div>
-            </Link>
-          ))}
-        </div>
+        {loading ? (
+          <div className="text-center py-8">
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+            <p className="mt-2 text-gray-500">Memuat pengumuman...</p>
+          </div>
+        ) : allAnnouncements.length > 0 ? (
+          <div className="space-y-4">
+            {allAnnouncements.map((announcement) => (
+              <Link
+                key={announcement.id}
+                to={`/admin/pengumuman/${announcement.id}`}
+                className="block bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all"
+              >
+                <div className="flex items-center gap-2 mb-3">
+                  <span className={`${getCategoryColor(announcement.category?.name)} text-white text-xs px-3 py-1 rounded-full`}>
+                    {announcement.category?.name || 'Umum'}
+                  </span>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-800 mb-2">{announcement.title}</h3>
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">{announcement.content}</p>
+                <div className="flex items-center gap-4 text-gray-500 text-sm">
+                  <span className="flex items-center gap-1">
+                    <FaCalendarAlt className="w-4 h-4" />
+                    {formatDate(announcement.created_at)}
+                  </span>
+                  <span className="flex items-center gap-1">
+                    <FaUser className="w-4 h-4" />
+                    {announcement.author?.name || 'Admin'}
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        ) : (
+          <div className="text-center py-8 bg-white rounded-2xl">
+            <p className="text-gray-500">Belum ada pengumuman</p>
+          </div>
+        )}
       </div>
     </div>
   );

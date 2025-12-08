@@ -20,7 +20,7 @@ export default function DetailPengumuman() {
       setAnnouncement(response.data.data);
     } catch (error) {
       console.error('Error fetching announcement:', error);
-      alert('Gagal memuat pengumuman');
+      enqueueSnackbar('Gagal memuat pengumuman', { variant: 'error' });
     } finally {
       setLoading(false);
     }

@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { useSnackbar } from 'notistack';
 import { userAPI } from '../../services/api';
 
 export default function TambahPengguna() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const { enqueueSnackbar } = useSnackbar();
   const isEditMode = !!id;
 
   const [loading, setLoading] = useState(false);
@@ -36,7 +38,7 @@ export default function TambahPengguna() {
       });
     } catch (error) {
       console.error('Error fetching user:', error);
-      alert('Gagal memuat data pengguna');
+      enqueueSnackbar('Gagal memuat data pengguna', { variant: 'error' });
     }
   };
 
@@ -53,12 +55,12 @@ export default function TambahPengguna() {
     
     // Validation
     if (!isEditMode && formData.password !== formData.password_confirmation) {
-      alert('Password dan konfirmasi password tidak sama');
+      enqueueSnackbar('Password dan konfirmasi password tidak sama', { variant: 'error' });
       return;
     }
 
     if (!isEditMode && formData.password.length < 8) {
-      alert('Password minimal 8 karakter');
+      enqueueSnackbar('Password minimal 8 karakter', { variant: 'error' });
       return;
     }
 
@@ -68,11 +70,11 @@ export default function TambahPengguna() {
       if (isEditMode) {
         // Update existing user
         await userAPI.update(id, formData);
-        alert('Pengguna berhasil diperbarui');
+        enqueueSnackbar('Pengguna berhasil diperbarui', { variant: 'success' });
       } else {
         // Create new user
         await userAPI.create(formData);
-        alert('Pengguna berhasil ditambahkan');
+        enqueueSnackbar('Pengguna berhasil ditambahkan', { variant: 'success' });
       }
       
       navigate('/admin/pengguna');
@@ -80,10 +82,10 @@ export default function TambahPengguna() {
       console.error('Error saving user:', error);
       if (error.response?.data?.errors) {
         const errors = error.response.data.errors;
-        const errorMessages = Object.values(errors).flat().join('\n');
-        alert(errorMessages);
+        const errorMessages = Object.values(errors).flat().join(', ');
+        enqueueSnackbar(errorMessages, { variant: 'error' });
       } else {
-        alert(error.response?.data?.message || 'Gagal menyimpan pengguna');
+        enqueueSnackbar(error.response?.data?.message || 'Gagal menyimpan pengguna', { variant: 'error' });
       }
     } finally {
       setLoading(false);

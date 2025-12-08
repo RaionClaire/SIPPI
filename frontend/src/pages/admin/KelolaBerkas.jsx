@@ -27,20 +27,22 @@ export default function KelolaBerkas() {
   const handleApprove = async (id) => {
     try {
       await berkasAPI.update(id, { status: 'approved' });
+      enqueueSnackbar('Berkas berhasil disetujui', { variant: 'success' });
       fetchFiles();
     } catch (error) {
       console.error('Error approving file:', error);
-      alert('Gagal menyetujui berkas');
+      enqueueSnackbar('Gagal menyetujui berkas', { variant: 'error' });
     }
   };
 
   const handleReject = async (id) => {
     try {
       await berkasAPI.update(id, { status: 'rejected' });
+      enqueueSnackbar('Berkas berhasil ditolak', { variant: 'success' });
       fetchFiles();
     } catch (error) {
       console.error('Error rejecting file:', error);
-      alert('Gagal menolak berkas');
+      enqueueSnackbar('Gagal menolak berkas', { variant: 'error' });
     }
   };
 

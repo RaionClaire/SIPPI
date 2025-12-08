@@ -59,6 +59,7 @@ export const announcementAPI = {
   create: (data) => api.post('/pengumuman', data),
   update: (id, data) => api.put(`/pengumuman/${id}`, data),
   delete: (id) => api.delete(`/pengumuman/${id}`),
+  toggleArchive: (id) => api.post(`/pengumuman/${id}/toggle-archive`),
   addComment: (id, comment) => api.post(`/pengumuman/${id}/comments`, comment),
 };
 

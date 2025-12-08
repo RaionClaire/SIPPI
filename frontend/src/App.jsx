@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom';
+import { SnackbarProvider } from 'notistack';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import AnnouncementDetail from './pages/AnnouncementDetail';
@@ -20,7 +21,8 @@ import { ProtectedRoute, PublicRoute } from './components/ProtectedRoute';
 
 function App() {
   return (
-    <Routes>
+    <SnackbarProvider maxSnack={3} anchorOrigin={{ vertical: 'top', horizontal: 'right' }}>
+      <Routes>
       <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
       
       {/* Mahasiswa Routes */}
@@ -47,6 +49,7 @@ function App() {
         <Route path="/admin/pengguna/:id/edit" element={<TambahPengguna />} />
       </Route>
     </Routes>
+    </SnackbarProvider>
   );
 }
 
