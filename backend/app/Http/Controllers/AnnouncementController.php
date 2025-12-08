@@ -74,8 +74,8 @@ class AnnouncementController extends Controller
             Notification::create([
                 'user_id' => $mahasiswa->id,
                 'type' => 'announcement',
-                'title' => 'Pengumuman Baru',
-                'message' => 'Pengumuman baru: "' . $announcement->title . '"',
+                'title' => $announcement->title,
+                'message' => 'Pengumuman baru tersedia. Jangan lewatkan informasi penting ini!',
                 'announcement_id' => $announcement->id,
             ]);
         }

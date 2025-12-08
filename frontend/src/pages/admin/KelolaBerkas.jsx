@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { HiOutlineDocumentText, HiOutlineCheck, HiOutlineX, HiOutlineEye, HiOutlineDownload, HiOutlineSearch } from 'react-icons/hi';
 import { useSnackbar } from 'notistack';
 import StatCard from '../../components/StatCard';
+import ApproveRejectModal from '../../components/ApproveRejectModal';
 import { berkasAPI } from '../../services/api';
 
 export default function KelolaBerkas() {
@@ -10,6 +11,7 @@ export default function KelolaBerkas() {
   // States for data and filters
   const [files, setFiles] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [modalState, setModalState] = useState({ isOpen: false, type: null, fileId: null, fileName: '' });
   
   // Filter States
   const [search, setSearch] = useState('');
@@ -45,34 +47,52 @@ export default function KelolaBerkas() {
     }
   };
 
-  const handleApprove = async (id) => {
-    if (!window.confirm('Apakah Anda yakin ingin menyetujui berkas ini?')) {
-      return;
-    }
-    
-    try {
-      await berkasAPI.approve(id);
-      enqueueSnackbar('Berkas berhasil disetujui', { variant: 'success' });
-      fetchFiles();
-    } catch (error) {
-      console.error('Error approving file:', error);
-      enqueueSnackbar('Gagal menyetujui berkas', { variant: 'error' });
-    }
+  const getTypeName = (type) => {
+    const names = {
+      'proposal': 'Lembar Persetujuan Pembimbing',
+      'hasil': 'Berita Acara',
+      'kompre': 'Kartu Kendali Bimbingan',
+      'kp': 'Draf Laporan Proposal',
+    };
+    return names[type] || type;
   };
 
-  const handleReject = async (id) => {
-    const reason = window.prompt('Masukkan alasan penolakan:');
-    if (!reason) {
-      return;
-    }
-    
+  const openApproveModal = (file) => {
+    setModalState({
+      isOpen: true,
+      type: 'approve',
+      fileId: file.id,
+      fileName: getTypeName(file.type)
+    });
+  };
+
+  const openRejectModal = (file) => {
+    setModalState({
+      isOpen: true,
+      type: 'reject',
+      fileId: file.id,
+      fileName: getTypeName(file.type)
+    });
+  };
+
+  const closeModal = () => {
+    setModalState({ isOpen: false, type: null, fileId: null, fileName: '' });
+  };
+
+  const handleModalConfirm = async (rejectionReason) => {
     try {
-      await berkasAPI.reject(id, { rejection_reason: reason });
-      enqueueSnackbar('Berkas berhasil ditolak', { variant: 'success' });
+      if (modalState.type === 'approve') {
+        await berkasAPI.approve(modalState.fileId);
+        enqueueSnackbar('Berkas berhasil disetujui', { variant: 'success' });
+      } else {
+        await berkasAPI.reject(modalState.fileId, { rejection_reason: rejectionReason });
+        enqueueSnackbar('Berkas berhasil ditolak', { variant: 'success' });
+      }
       fetchFiles();
     } catch (error) {
-      console.error('Error rejecting file:', error);
-      enqueueSnackbar('Gagal menolak berkas', { variant: 'error' });
+      console.error('Error processing file:', error);
+      enqueueSnackbar('Gagal memproses berkas', { variant: 'error' });
+      throw error;
     }
   };
 
@@ -285,14 +305,14 @@ export default function KelolaBerkas() {
                       {file.status === 'pending' && (
                         <>
                           <button
-                            onClick={() => handleApprove(file.id)}
+                            onClick={() => openApproveModal(file)}
                             className="text-green-500 hover:text-green-700 transition-colors"
                             title="Setujui"
                           >
                             <HiOutlineCheck className="w-5 h-5 border border-green-500 rounded-full p-0.5" />
                           </button>
                           <button
-                            onClick={() => handleReject(file.id)}
+                            onClick={() => openRejectModal(file)}
                             className="text-red-500 hover:text-red-700 transition-colors"
                             title="Tolak"
                           >
@@ -318,6 +338,15 @@ export default function KelolaBerkas() {
           )}
         </div>
       )}
+
+      {/* Approve/Reject Modal */}
+      <ApproveRejectModal
+        isOpen={modalState.isOpen}
+        onClose={closeModal}
+        onConfirm={handleModalConfirm}
+        type={modalState.type}
+        fileName={modalState.fileName}
+      />
     </div>
   );
 }
