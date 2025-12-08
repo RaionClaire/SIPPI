@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useSnackbar } from 'notistack';
-import { HiOutlineArrowLeft, HiOutlineUpload, HiOutlineDocumentText } from 'react-icons/hi';
+import { HiOutlineArrowLeft, HiOutlineUpload, HiOutlineDocumentText, HiOutlineEye, HiOutlineDownload } from 'react-icons/hi';
 import { berkasAPI } from '../services/api'; // Ensure this path matches your project structure
 
 export default function UploadBerkasDetail() {
@@ -126,6 +126,36 @@ export default function UploadBerkasDetail() {
     } catch (error) {
       console.error('Error deleting file:', error);
       enqueueSnackbar('Gagal menghapus berkas', { variant: 'error' });
+    }
+  };
+
+  const handleView = async (file) => {
+    try {
+      const response = await berkasAPI.download(file.id);
+      const blob = new Blob([response.data], { type: response.data.type });
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+    } catch (error) {
+      console.error('Error viewing file:', error);
+    }
+  };
+
+  const handleDownload = async (file) => {
+    try {
+      const response = await berkasAPI.download(file.id);
+      const blob = new Blob([response.data], { type: response.data.type });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      enqueueSnackbar('File berhasil diunduh', { variant: 'success' });
+    } catch (error) {
+      console.error('Error downloading file:', error);
     }
   };
 
@@ -343,15 +373,36 @@ export default function UploadBerkasDetail() {
                         </div>
                       </div>
                       
-                      {/* Delete button only for pending status */}
-                      {file.status === 'pending' && (
-                        <button 
-                          onClick={() => handleDelete(file.id)}
-                          className="text-red-500 text-sm hover:underline ml-4"
+                      {/* Action buttons */}
+                      <div className="flex items-center gap-2 ml-4">
+                        <button
+                          onClick={() => handleView(file)}
+                          className="text-blue-500 hover:text-blue-700 transition-colors"
+                          title="Lihat"
                         >
-                          Hapus
+                          <HiOutlineEye className="w-5 h-5" />
                         </button>
-                      )}
+                        <button
+                          onClick={() => handleDownload(file)}
+                          className="text-gray-500 hover:text-gray-700 transition-colors"
+                          title="Download"
+                        >
+                          <HiOutlineDownload className="w-5 h-5" />
+                        </button>
+                        
+                        {/* Delete button only for pending status */}
+                        {file.status === 'pending' && (
+                          <button 
+                            onClick={() => handleDelete(file.id)}
+                            className="text-red-500 hover:text-red-700 transition-colors"
+                            title="Hapus"
+                          >
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
                     </div>
                  </div>
                ))}

@@ -3,7 +3,7 @@ import { HiOutlineDocumentText, HiOutlineCheck, HiOutlineX, HiOutlineEye, HiOutl
 import { useSnackbar } from 'notistack';
 import StatCard from '../../components/StatCard';
 import ApproveRejectModal from '../../components/ApproveRejectModal';
-import { berkasAPI } from '../../services/api';
+import { berkasAPI, BACKEND_URL } from '../../services/api';
 
 export default function KelolaBerkas() {
   const { enqueueSnackbar } = useSnackbar();
@@ -93,6 +93,36 @@ export default function KelolaBerkas() {
       console.error('Error processing file:', error);
       enqueueSnackbar('Gagal memproses berkas', { variant: 'error' });
       throw error;
+    }
+  };
+
+  const handleView = async (file) => {
+    try {
+      const response = await berkasAPI.download(file.id);
+      const blob = new Blob([response.data], { type: response.data.type });
+      const url = window.URL.createObjectURL(blob);
+      window.open(url, '_blank');
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+    } catch (error) {
+      console.error('Error viewing file:', error);
+    }
+  };
+
+  const handleDownload = async (file) => {
+    try {
+      const response = await berkasAPI.download(file.id);
+      const blob = new Blob([response.data], { type: response.data.type });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = file.filename;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+      enqueueSnackbar('File berhasil diunduh', { variant: 'success' });
+    } catch (error) {
+      console.error('Error downloading file:', error);
     }
   };
 
@@ -289,12 +319,14 @@ export default function KelolaBerkas() {
                   <td className="py-4 px-6">
                     <div className="flex items-center gap-3">
                       <button
+                        onClick={() => handleView(file)}
                         className="text-blue-500 hover:text-blue-700 transition-colors"
                         title="Lihat"
                       >
                         <HiOutlineEye className="w-5 h-5" />
                       </button>
                       <button
+                        onClick={() => handleDownload(file)}
                         className="text-gray-500 hover:text-gray-700 transition-colors"
                         title="Download"
                       >

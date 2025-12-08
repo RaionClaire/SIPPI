@@ -7,6 +7,7 @@ export default function Header() {
   const navigate = useNavigate();
   const [unreadCount, setUnreadCount] = useState(0);
   const user = JSON.parse(localStorage.getItem('user') || '{}');
+  const isAdmin = user.role === 'admin';
 
   useEffect(() => {
     fetchUnreadCount();
@@ -40,7 +41,7 @@ export default function Header() {
         <div className="flex items-center gap-4">
           {/* Notification Bell */}
           <button
-            onClick={() => navigate('/notifikasi')}
+            onClick={() => navigate(isAdmin ? '/admin/notifikasi' : '/notifikasi')}
             className="relative p-2 hover:bg-blue-700 rounded-lg transition-colors"
           >
             <FaBell className="w-6 h-6" />
@@ -53,7 +54,7 @@ export default function Header() {
           
           {/* Profile with Name */}
           <button
-            onClick={() => navigate('/profil')}
+            onClick={() => navigate(isAdmin ? '/admin/profil' : '/profil')}
             className="flex items-center gap-2 p-2 hover:bg-blue-700 rounded-lg transition-colors"
           >
             <FaUserCircle className="w-8 h-8" />

@@ -53,6 +53,9 @@ function App() {
         <Route path="/admin/pengguna" element={<ManajemenPengguna />} />
         <Route path="/admin/pengguna/tambah" element={<TambahPengguna />} />
         <Route path="/admin/pengguna/:id/edit" element={<TambahPengguna />} />
+        <Route path="/admin/notifikasi" element={<Notification />} />
+        <Route path="/admin/profil" element={<Profile />} />
+        <Route path="/admin/ubah-password" element={<ChangePassword />} />
       </Route>
     </Routes>
     </SnackbarProvider>

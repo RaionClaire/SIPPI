@@ -101,6 +101,34 @@ class RegistrationFileController extends Controller
         ], 200);
     }
 
+    /**
+     * Download the specified resource.
+     */
+    public function download($id)
+    {
+        $registrationFile = RegistrationFile::find($id);
+
+        if (!$registrationFile) {
+            return response()->json([
+                'message' => 'Berkas pendaftaran tidak ditemukan',
+            ], 404);
+        }
+
+        $filePath = storage_path('app/public/' . $registrationFile->file_path);
+
+        if (!file_exists($filePath)) {
+            return response()->json([
+                'message' => 'File tidak ditemukan di storage',
+            ], 404);
+        }
+
+        return response()->download($filePath, $registrationFile->filename, [
+            'Access-Control-Allow-Origin' => '*',
+            'Access-Control-Allow-Methods' => 'GET, POST, PUT, DELETE, OPTIONS',
+            'Access-Control-Allow-Headers' => 'Content-Type, Authorization',
+        ]);
+    }
+
 
     /**
      * Update the specified resource in storage.

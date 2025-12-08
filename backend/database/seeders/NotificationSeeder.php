@@ -39,6 +39,8 @@ class NotificationSeeder extends Seeder
                 
                 Notification::create([
                     'user_id' => $user->id,
+                    'type' => 'announcement',
+                    'title' => $announcement->title,
                     'announcement_id' => $announcement->id,
                     'message' => $message,
                     'is_read' => $isRead,

@@ -18,6 +18,7 @@ class Announcement extends Model
         'title',
         'content',
         'status',
+        'is_important',
         'published_at',
         'archived_at',
         'archived_by',

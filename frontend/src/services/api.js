@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-// Base URL - nanti ganti dengan URL Laravel backend
 const API_BASE_URL = 'http://localhost:8000/api';
+export const BACKEND_URL = 'http://localhost:8000';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
@@ -103,6 +103,7 @@ export const berkasAPI = {
   delete: (id) => api.delete(`/berkas/${id}`),
   approve: (id) => api.post(`/berkas/${id}/approve`),
   reject: (id, data) => api.post(`/berkas/${id}/reject`, data),
+  download: (id) => api.get(`/berkas/${id}/download`, { responseType: 'blob' }),
 };
 
 // Category API

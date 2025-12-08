@@ -286,7 +286,9 @@ Email: beasiswa@informatika.univ.ac.id',
             ],
         ];
 
-        foreach ($announcements as $announcement) {
+        foreach ($announcements as $index => $announcement) {
+            // Make first 2 announcements important
+            $announcement['is_important'] = $index < 2;
             Announcement::create($announcement);
         }
 

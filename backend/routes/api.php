@@ -57,6 +57,7 @@ Route::prefix('berkas')->middleware('auth:sanctum')->group(function () {
     Route::get('/', [App\Http\Controllers\RegistrationFileController::class, 'index'])->name('berkas.index');
     Route::post('/', [App\Http\Controllers\RegistrationFileController::class, 'store'])->name('berkas.store');
     Route::get('{id}', [App\Http\Controllers\RegistrationFileController::class, 'show'])->name('berkas.show')->whereNumber('id');
+    Route::get('{id}/download', [App\Http\Controllers\RegistrationFileController::class, 'download'])->name('berkas.download')->whereNumber('id');
     Route::put('{id}', [App\Http\Controllers\RegistrationFileController::class, 'update'])->name('berkas.update')->whereNumber('id');
     Route::delete('{id}', [App\Http\Controllers\RegistrationFileController::class, 'destroy'])->name('berkas.destroy')->whereNumber('id');
     Route::post('{id}/approve', [App\Http\Controllers\RegistrationFileController::class, 'approve'])->name('berkas.approve')->whereNumber('id');

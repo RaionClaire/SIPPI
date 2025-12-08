@@ -51,8 +51,7 @@ export default function Register() {
       return;
     }
 
-    // Simulasi register - nanti ganti dengan API call
-    // authAPI.register(formData).then(...)
+
     alert('Registrasi berhasil! Silakan login.');
     navigate('/login');
   };

@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('title');
             $table->text('content');
             $table->enum('status', ['draft', 'published', 'archived'])->default('draft');
+            $table->boolean('is_important')->default(false);
             $table->dateTime('published_at')->nullable();
             $table->dateTime('archived_at')->nullable();
             $table->foreignId('archived_by')->nullable()->constrained('users');

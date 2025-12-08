@@ -21,10 +21,10 @@ export default function TambahPengguna() {
 
   // Load user data if in edit mode
   useEffect(() => {
-    if (isEditMode) {
+    if (isEditMode && id) {
       fetchUser();
     }
-  }, [id, isEditMode]);
+  }, [id]);
 
   const fetchUser = async () => {
     try {
