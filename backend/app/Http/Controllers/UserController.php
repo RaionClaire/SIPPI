@@ -27,6 +27,7 @@ class UserController extends Controller
         $validated = request()->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users',
+            'npm_nip' => 'nullable|string|max:50',
             'password' => 'required|string|min:8|confirmed',
             'role' => 'required|in:admin,mahasiswa',
         ]);
@@ -34,6 +35,7 @@ class UserController extends Controller
         $user = User::create([
             'name' => $validated['name'],
             'email' => $validated['email'],
+            'npm_nip' => $validated['npm_nip'] ?? null,
             'password' => bcrypt($validated['password']),
             'role' => $validated['role'],
         ]);
@@ -71,12 +73,17 @@ class UserController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
+            'npm_nip' => 'nullable|string|max:50',
             'password' => 'nullable|string|min:8|confirmed',
             'role' => 'sometimes|in:admin,mahasiswa,user',
         ]);
 
         $user->name = $validated['name'];
         $user->email = $validated['email'];
+        
+        if (isset($validated['npm_nip'])) {
+            $user->npm_nip = $validated['npm_nip'];
+        }
         
         if (isset($validated['role'])) {
             $user->role = $validated['role'];
@@ -110,6 +117,28 @@ class UserController extends Controller
 
         return response()->json([
             'message' => 'Pengguna berhasil dihapus',
+        ], 200);
+    }
+
+    /**
+     * Reset user password to default.
+     */
+    public function resetPassword($id)
+    {
+        $user = User::find($id);
+        if (!$user) {
+            return response()->json([
+                'message' => 'Pengguna tidak ditemukan',
+            ], 404);
+        }
+
+        $defaultPassword = 'password';
+        $user->password = bcrypt($defaultPassword);
+        $user->save();
+
+        return response()->json([
+            'message' => 'Password berhasil direset ke default: ' . $defaultPassword,
+            'data' => $user
         ], 200);
     }
 }

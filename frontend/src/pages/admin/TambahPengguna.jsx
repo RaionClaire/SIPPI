@@ -13,6 +13,7 @@ export default function TambahPengguna() {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
+    npm_nip: '',
     password: '',
     password_confirmation: '',
     role: 'mahasiswa'
@@ -32,6 +33,7 @@ export default function TambahPengguna() {
       setFormData({
         name: user.name,
         email: user.email,
+        npm_nip: user.npm_nip || '',
         password: '',
         password_confirmation: '',
         role: user.role
@@ -149,6 +151,27 @@ export default function TambahPengguna() {
               Admin memiliki akses penuh ke sistem, Mahasiswa hanya dapat melihat pengumuman dan mengelola berkas
             </p>
           </div>
+
+       {/* NPM/NIP */}
+          <div>
+            <label className="block text-gray-700 font-medium mb-2">
+              {formData.role === 'mahasiswa' ? 'NPM' : 'NIP'}
+            </label>
+            <input
+              type="text"
+              name="npm_nip"
+              value={formData.npm_nip}
+              onChange={handleChange}
+              placeholder={formData.role === 'mahasiswa' ? 'Masukkan NPM...' : 'Masukkan NIP...'}
+              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <p className="text-sm text-gray-500 mt-2">
+              {formData.role === 'mahasiswa' 
+                ? 'Nomor Pokok Mahasiswa (NPM)' 
+                : 'Nomor Induk Pegawai (NIP)'}
+            </p>
+          </div>
+
 
           {/* Password - only show if not edit mode or if user wants to change password */}
           {!isEditMode && (

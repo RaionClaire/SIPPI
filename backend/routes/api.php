@@ -16,6 +16,7 @@ Route::prefix('auth')->group(function () {
         Route::post('logout', [AuthController::class, 'logout'])->name('auth.logout');
         Route::get('me', [AuthController::class, 'me'])->name('auth.me');
         Route::post('register', [AuthController::class, 'register'])->name('auth.register');
+        Route::post('change-password', [AuthController::class, 'changePassword'])->name('auth.change-password');
     });
 });
 
@@ -48,6 +49,7 @@ Route::prefix('users')->middleware('auth:sanctum')->group(function () {
     Route::get('{id}', [App\Http\Controllers\UserController::class, 'show'])->name('users.show')->whereNumber('id');
     Route::put('{id}', [App\Http\Controllers\UserController::class, 'update'])->name('users.update')->whereNumber('id');
     Route::delete('{id}', [App\Http\Controllers\UserController::class, 'destroy'])->name('users.destroy')->whereNumber('id');
+    Route::post('{id}/reset-password', [App\Http\Controllers\UserController::class, 'resetPassword'])->name('users.reset-password')->whereNumber('id');
 });
 
 Route::prefix('berkas')->middleware('auth:sanctum')->group(function () {

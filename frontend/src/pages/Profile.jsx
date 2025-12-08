@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { FaUser, FaHashtag, FaCalendarAlt, FaGraduationCap } from 'react-icons/fa';
+import { HiOutlineLockClosed } from 'react-icons/hi';
 import { authAPI } from '../services/api';
 
 export default function Profile() {
+  const navigate = useNavigate();
   const [profile, setProfile] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -47,7 +50,7 @@ export default function Profile() {
 
   const profileFields = [
     { icon: FaUser, label: 'Email', value: profile.email, color: 'bg-blue-50 text-blue-600' },
-    { icon: FaHashtag, label: 'NPM', value: profile.npm || '-', color: 'bg-green-50 text-green-600' },
+    { icon: FaHashtag, label: profile.role === 'mahasiswa' ? 'NPM' : 'NIP', value: profile.npm_nip || '-', color: 'bg-green-50 text-green-600' },
     { icon: FaGraduationCap, label: 'Role', value: profile.role === 'mahasiswa' ? 'Mahasiswa' : 'Admin', color: 'bg-purple-50 text-purple-600' },
     { icon: FaCalendarAlt, label: 'Bergabung Sejak', value: new Date(profile.created_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) || '-', color: 'bg-orange-50 text-orange-600' }
   ];
@@ -91,8 +94,19 @@ export default function Profile() {
             ))}
           </div>
 
+          {/* Change Password Button */}
+          <div className="mt-6">
+            <button
+              onClick={() => navigate('/ubah-password')}
+              className="flex items-center gap-2 px-6 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl transition-colors"
+            >
+              <HiOutlineLockClosed className="w-5 h-5" />
+              <span>Ubah Password</span>
+            </button>
+          </div>
+
           {/* Info Note */}
-          <div className="mt-8 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="font-semibold text-blue-900 mb-2">Informasi</h3>
             <p className="text-sm text-blue-800">
               Jika ada perubahan data pribadi (nama, NPM, dll), silakan hubungi bagian administrasi 

@@ -8,6 +8,7 @@ import BerkasDetail from './pages/BerkasDetail';
 import Notification from './pages/Notification';
 import Archive from './pages/Archive';
 import Profile from './pages/Profile';
+import ChangePassword from './pages/ChangePassword';
 import MainLayout from './layouts/MainLayout';
 import AdminLayout from './layouts/AdminLayout';
 import AdminDashboard from './pages/admin/Dashboard';
@@ -34,6 +35,7 @@ function App() {
         <Route path="/notifikasi" element={<Notification />} />
         <Route path="/arsip" element={<Archive />} />
         <Route path="/profil" element={<Profile />} />
+        <Route path="/ubah-password" element={<ChangePassword />} />
       </Route>
 
       {/* Admin Routes */}

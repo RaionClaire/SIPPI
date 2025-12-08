@@ -14,6 +14,7 @@ class AnnouncementController extends Controller
     public function index()
     {
         $announcement = Announcement::with(['category', 'author'])
+            ->whereNull('archived_at')
             ->orderBy('created_at', 'desc')
             ->get();
         return response()->json([

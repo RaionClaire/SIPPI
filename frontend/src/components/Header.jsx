@@ -3,6 +3,7 @@ import { FaUserCircle } from 'react-icons/fa';
 
 export default function Header() {
   const navigate = useNavigate();
+  const user = JSON.parse(localStorage.getItem('user') || '{}');
 
   return (
     <header className="bg-primary text-white shadow-md">
@@ -20,6 +21,7 @@ export default function Header() {
           onClick={() => navigate('/profil')}
           className="flex items-center gap-3 hover:bg-blue-700 px-4 py-2 rounded-lg transition-colors"
         >
+          <span className="font-medium">{user.name || 'User'}</span>
           <FaUserCircle className="text-3xl" />
         </button>
       </div>

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { HiPlus, HiOutlinePencil, HiOutlineTrash, HiOutlineUsers } from 'react-icons/hi';
+import { HiPlus, HiOutlinePencil, HiOutlineTrash, HiOutlineUsers, HiOutlineKey } from 'react-icons/hi';
 import { useSnackbar } from 'notistack';
 import StatCard from '../../components/StatCard';
 import { userAPI } from '../../services/api';
@@ -38,6 +38,20 @@ export default function ManajemenPengguna() {
       console.error('Error fetching users:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async (id, userName) => {
+    if (!window.confirm(`Apakah Anda yakin ingin mereset password untuk ${userName}? Password akan direset ke default: "password123"`)) {
+      return;
+    }
+
+    try {
+      await userAPI.resetPassword(id);
+      enqueueSnackbar('Password berhasil direset ke "password123"', { variant: 'success' });
+    } catch (error) {
+      console.error('Error resetting password:', error);
+      enqueueSnackbar('Gagal mereset password', { variant: 'error' });
     }
   };
 
@@ -164,6 +178,7 @@ export default function ManajemenPengguna() {
               <tr className="border-b-2 border-gray-200">
                 <th className="text-left py-3 px-4 text-gray-600 font-semibold">NAMA</th>
                 <th className="text-left py-3 px-4 text-gray-600 font-semibold">EMAIL</th>
+                <th className="text-left py-3 px-4 text-gray-600 font-semibold">NPM/NIP</th>
                 <th className="text-left py-3 px-4 text-gray-600 font-semibold">ROLE</th>
                 <th className="text-left py-3 px-4 text-gray-600 font-semibold">TANGGAL DIBUAT</th>
                 <th className="text-left py-3 px-4 text-gray-600 font-semibold">AKSI</th>
@@ -176,6 +191,7 @@ export default function ManajemenPengguna() {
                   <span className="text-gray-800 font-medium">{user.name}</span>
                 </td>
                 <td className="py-4 px-4 text-gray-600">{user.email}</td>
+                <td className="py-4 px-4 text-gray-600">{user.npm_nip || '-'}</td>
                 <td className="py-4 px-4">
                   <span className={`px-3 py-1 rounded-full text-sm font-medium ${getRoleBadge(user.role)}`}>
                     {getRoleLabel(user.role)}
@@ -191,6 +207,13 @@ export default function ManajemenPengguna() {
                     >
                       <HiOutlinePencil className="w-5 h-5" />
                     </Link>
+                    <button
+                      onClick={() => handleResetPassword(user.id, user.name)}
+                      className="p-2 text-gray-500 hover:text-yellow-600 hover:bg-yellow-50 rounded-lg transition-colors"
+                      title="Reset Password"
+                    >
+                      <HiOutlineKey className="w-5 h-5" />
+                    </button>
                     <button
                       onClick={() => handleDelete(user.id)}
                       className="p-2 text-gray-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors"
