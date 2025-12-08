@@ -13,20 +13,9 @@ export default function Profile() {
   const fetchProfile = async () => {
     try {
       setLoading(true);
-      // Get user from localStorage or fetch from API
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      if (user.id) {
-        // Try to get fresh data from API
-        try {
-          const response = await authAPI.me();
-          setProfile(response.data.user);
-        } catch (error) {
-          // Fallback to localStorage if API fails
-          setProfile(user);
-        }
-      } else {
-        setProfile(user);
-      }
+      const response = await authAPI.me();
+      setProfile(response.data);
+      localStorage.setItem('user', JSON.stringify(response.data));
     } catch (error) {
       console.error('Error fetching profile:', error);
       // Fallback to localStorage

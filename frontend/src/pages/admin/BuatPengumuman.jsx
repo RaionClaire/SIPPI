@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { announcementAPI } from '../../services/api';
+import { announcementAPI, categoryAPI } from '../../services/api';
 
 export default function BuatPengumuman() {
   const navigate = useNavigate();
@@ -8,6 +8,7 @@ export default function BuatPengumuman() {
   const isEditMode = !!id;
 
   const [loading, setLoading] = useState(false);
+  const [categories, setCategories] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
     category_id: '',
@@ -15,18 +16,22 @@ export default function BuatPengumuman() {
     is_important: false
   });
 
-  const categories = [
-    { id: 1, name: 'Akademik' },
-    { id: 2, name: 'Kegiatan' },
-    { id: 3, name: 'Beasiswa' },
-    { id: 4, name: 'Lomba' }
-  ];
-
   useEffect(() => {
+    fetchCategories();
     if (isEditMode) {
       fetchAnnouncement();
     }
   }, [id, isEditMode]);
+
+  const fetchCategories = async () => {
+    try {
+      const response = await categoryAPI.getAll();
+      setCategories(response.data.data || []);
+    } catch (error) {
+      console.error('Error fetching categories:', error);
+      alert('Gagal memuat kategori');
+    }
+  };
 
   const fetchAnnouncement = async () => {
     try {

@@ -59,4 +59,15 @@ Route::prefix('notifications')->middleware('auth:sanctum')->group(function () {
     Route::delete('{id}', [App\Http\Controllers\NotificationController::class, 'destroy'])->name('notifications.destroy')->whereNumber('id');
 });
 
+Route::prefix('categories')->group(function () {
+    Route::get('/', [App\Http\Controllers\CategoryController::class, 'index'])->name('categories.index');
+    
+    Route::middleware('auth:sanctum')->group(function () {
+        Route::post('/', [App\Http\Controllers\CategoryController::class, 'store'])->name('categories.store');
+        Route::get('{id}', [App\Http\Controllers\CategoryController::class, 'show'])->name('categories.show')->whereNumber('id');
+        Route::put('{id}', [App\Http\Controllers\CategoryController::class, 'update'])->name('categories.update')->whereNumber('id');
+        Route::delete('{id}', [App\Http\Controllers\CategoryController::class, 'destroy'])->name('categories.destroy')->whereNumber('id');
+    });
+});
+
 

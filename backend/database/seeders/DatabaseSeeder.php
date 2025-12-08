@@ -15,18 +15,41 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-
+        // Seed users first
         User::factory()->create([
-            'name' => 'Test Admin',
-            'email' => 'test@example.com',
+            'name' => 'Admin SIPPI',
+            'email' => 'admin@sippi.ac.id',
+            'password' => bcrypt('password'),
             'role' => 'admin'
         ]);
 
         User::factory()->create([
-            'name' => 'Test User',
-            'email' => 'user@example.com',
+            'name' => 'Budi Santoso',
+            'email' => 'budi@student.ac.id',
+            'password' => bcrypt('password'),
             'role' => 'mahasiswa'
+        ]);
+
+        User::factory()->create([
+            'name' => 'Siti Rahayu',
+            'email' => 'siti@student.ac.id',
+            'password' => bcrypt('password'),
+            'role' => 'mahasiswa'
+        ]);
+
+        User::factory()->create([
+            'name' => 'Andi Wijaya',
+            'email' => 'andi@student.ac.id',
+            'password' => bcrypt('password'),
+            'role' => 'mahasiswa'
+        ]);
+
+        // Call other seeders
+        $this->call([
+            CategorySeeder::class,
+            AnnouncementSeeder::class,
+            RegistrationFileSeeder::class,
+            NotificationSeeder::class,
         ]);
     }
 }
